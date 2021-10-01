@@ -37,14 +37,13 @@ def summarise_qc(input_list, output):
             "Sequence Duplication Levels",
             "Overrepresented sequences",
             "Adapter Content",
+            "Sample",
         ],
     )
     qc_df.to_csv(output, sep="\t", index=False, header=True)
 
 
 if __name__ == "__main__":
-    # noinspection PyUnresolvedReferences
-    sys.stderr = open(snakemake.log[0], "w")
 
     # noinspection PyUnresolvedReferences
     summarise_qc(
