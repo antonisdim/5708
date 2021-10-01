@@ -7,8 +7,10 @@ __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
 include: "rules/adapterremoval.smk"
+include: "rules/qc.smk"
 
 
 rule all:
     input:
-        "adRm/SB277890137_R1_adRm.fastq.gz"
+        "qc/SB277890137_R1_adRm_fastqc.zip",
+        "qc.done"
