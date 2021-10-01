@@ -8,7 +8,8 @@ __license__ = "MIT"
 
 import pandas as pd
 
-SAMPLE_TABLE = 'samples.tsv'
+SAMPLE_TABLE = "samples.tsv"
+
 
 rule fastqc_paired_end:
     input:
@@ -17,12 +18,12 @@ rule fastqc_paired_end:
     log:
         "qc/{accession}_qc.log",
     output:
-        "qc/{accession}_R1_adRm_fastqc.html",
-        "qc/{accession}_R1_adRm_fastqc.zip",
-        directory("qc/{accession}_R1_adRm_fastqc"),
-        "qc/{accession}_R2_adRm_fastqc.html",
-        "qc/{accession}_R2_adRm_fastqc.zip",
-        directory("qc/{accession}_R2_adRm_fastqc"),
+        temp("qc/{accession}_R1_adRm_fastqc.html"),
+        temp("qc/{accession}_R1_adRm_fastqc.zip"),
+        temp("qc/{accession}_R1_adRm_fastqc/summary.txt"),
+        temp("qc/{accession}_R2_adRm_fastqc.html"),
+        temp("qc/{accession}_R2_adRm_fastqc.zip"),
+        temp("qc/{accession}_R2_adRm_fastqc/summary.txt"),
     message:
         "Running fastqc on {input.fastq_r1} and {input.fastq_r2}."
     conda:
@@ -33,27 +34,28 @@ rule fastqc_paired_end:
         "fastqc {input.fastq_r1} {input.fastq_r2} -o {params.outdir} --extract 2> {log}"
 
 
-def get_qc_samples(_):
-    """Get the list of samples to run qc on"""
+def get_qc_summaries(_):
+    """Get the paths to the fastqc summary files"""
 
     samples = pd.read_csv(SAMPLE_TABLE, sep="\t", names=["Sample_Acc"])
 
     inputs = []
 
     for key, sam in samples.iterrows():
-        qc_outfile = f"qc/{sam['Sample_Acc']}_R1_adRm_fastqc.zip"
-        inputs.append(qc_outfile)
+        qc_outfile_r1 = f"qc/{sam['Sample_Acc']}_R1_adRm_fastqc/summary.txt"
+        qc_outfile_r2 = f"qc/{sam['Sample_Acc']}_R2_adRm_fastqc/summary.txt"
+        inputs.append(qc_outfile_r1)
+        inputs.append(qc_outfile_r2)
 
     return inputs
 
 
-
-rule run_all_fastqc:
+rule summarise_qc:
     input:
-        get_qc_samples,
+        get_qc_summaries,
     output:
-        "qc.done",
+        "qc/fastqc_summary.tsv",
     message:
-        "Adapters have been removed and qc has been run for all samples.",
-    shell:
-        "touch {output}"
+        "Adapters have been removed and qc has been run for all samples."
+    script:
+        "../scripts/summarise_qc.py"

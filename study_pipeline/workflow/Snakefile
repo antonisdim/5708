@@ -6,6 +6,7 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
+
 include: "rules/adapterremoval.smk"
 include: "rules/qc.smk"
 
@@ -13,4 +14,4 @@ include: "rules/qc.smk"
 rule all:
     input:
         "qc/SB277890137_R1_adRm_fastqc.zip",
-        "qc.done"
+        "qc/fastqc_summary.tsv",
