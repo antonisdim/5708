@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+__author__ = "Evangelos A. Dimopoulos"
+__copyright__ = "Copyright 2021, University of Oxford"
+__email__ = "antonisdim41@gmail.com"
+__license__ = "MIT"
+
+include: "rules/adapterremoval.smk"
+
+
+rule all:
+    input:
+        "adRm/SB277890137_R1_adRm.fastq.gz"
