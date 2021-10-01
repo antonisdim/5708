@@ -21,9 +21,11 @@ rule fastqc_paired_end:
         temp("qc/{accession}_R1_adRm_fastqc.html"),
         temp("qc/{accession}_R1_adRm_fastqc.zip"),
         temp("qc/{accession}_R1_adRm_fastqc/summary.txt"),
+        temp(directory("qc/{accession}_R1_adRm_fastqc")),
         temp("qc/{accession}_R2_adRm_fastqc.html"),
         temp("qc/{accession}_R2_adRm_fastqc.zip"),
         temp("qc/{accession}_R2_adRm_fastqc/summary.txt"),
+        temp(directory("qc/{accession}_R2_adRm_fastqc")),
     message:
         "Running fastqc on {input.fastq_r1} and {input.fastq_r2}."
     conda:
