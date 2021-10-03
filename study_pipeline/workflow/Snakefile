@@ -9,9 +9,12 @@ __license__ = "MIT"
 
 include: "rules/adapterremoval.smk"
 include: "rules/qc.smk"
+include: "rules/clustering.smk"
+include: "rules/assembly.smk"
 
 
 rule all:
     input:
-        "qc/SB277890137_R1_adRm_fastqc.zip",
-        "qc/fastqc_summary.tsv",
+        # "qc/fastqc_summary.tsv",
+        # "poppunk_ecoli/qfile.txt",
+        "assemblies.done"

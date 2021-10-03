@@ -39,7 +39,9 @@ rule fastqc_paired_end:
 def get_qc_summaries(_):
     """Get the paths to the fastqc summary files"""
 
-    samples = pd.read_csv(SAMPLE_TABLE, sep="\t", names=["Sample_Acc"])
+    samples = pd.read_csv(
+        SAMPLE_TABLE, sep="\t", names=["Sample_Acc", "Species"], usecols=["Sample_Acc"]
+    )
 
     inputs = []
 
