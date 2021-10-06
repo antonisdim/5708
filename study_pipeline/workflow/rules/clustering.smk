@@ -58,4 +58,3 @@ SAMPLE_TABLE = "samples.tsv"
 #     conda:
 #         "../envs/poppunk.yaml"
 #     shell:
-

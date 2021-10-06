@@ -10,23 +10,25 @@ import pandas as pd
 
 SAMPLE_TABLE = "samples.tsv"
 
+
 rule spades_assembly:
     input:
         fastq_r1="adRm/{accession}_R1_adRm.fastq.gz",
         fastq_r2="adRm/{accession}_R2_adRm.fastq.gz",
     log:
-        "assemblies/{accession}/spades.log"
+        "assemblies/{accession}/spades.log",
     output:
-        "assemblies/{accession}/contigs.fasta"
+        "assemblies/{accession}_contigs.fasta",
     message:
         "Spades de novo assembly for {wildcards.accession}."
     conda:
         "../envs/spades.yaml"
     params:
-        outdir="assemblies/{accession}"
+        outdir="assemblies/{accession}",
     threads: 1
     shell:
-        "spades.py -1 {input.fastq_r1} -2 {input.fastq_r2} -o {params.outdir} --threads 1 --careful 2> {log}"
+        "( spades.py -1 {input.fastq_r1} -2 {input.fastq_r2} -o {params.outdir} --threads 1 --careful && "
+        "mv {params.outdir}/contigs.fasta {output} ) 2> {log}"
 
 
 def get_assemblies(_):

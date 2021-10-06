@@ -17,4 +17,4 @@ rule all:
     input:
         # "qc/fastqc_summary.tsv",
         # "poppunk_ecoli/qfile.txt",
-        "assemblies.done"
+        "assemblies.done",
