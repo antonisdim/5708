@@ -18,7 +18,8 @@ rule spades_assembly:
     log:
         "assemblies/{accession}/spades.log",
     output:
-        "assemblies/{accession}_contigs.fasta",
+        contigs="assemblies/{accession}_contigs.fasta",
+        scaffolds="assemblies/{accession}_scaffolds.fasta",
     message:
         "Spades de novo assembly for {wildcards.accession}."
     conda:
@@ -28,11 +29,12 @@ rule spades_assembly:
     threads: 1
     shell:
         "( spades.py -1 {input.fastq_r1} -2 {input.fastq_r2} -o {params.outdir} --threads 1 --careful && "
-        "mv {params.outdir}/contigs.fasta {output} ) 2> {log}"
+        "mv {params.outdir}/contigs.fasta {output.contigs}; "
+        "mv {params.outdir}/scaffolds.fasta {output.scaffolds} ) 2> {log}"
 
 
 def get_assemblies(_):
-    """Get the paths to the fastqc summary files"""
+    """Get the paths to the contigs"""
 
     samples = pd.read_csv(
         SAMPLE_TABLE, sep="\t", names=["Sample_Acc", "Species"], usecols=["Sample_Acc"]
@@ -41,7 +43,7 @@ def get_assemblies(_):
     inputs = []
 
     for key, sam in samples.iterrows():
-        assembly = f"assemblies/{sam['Sample_Acc']}/contigs.fasta"
+        assembly = f"assemblies/{sam['Sample_Acc']}_contigs.fasta"
         inputs.append(assembly)
 
     return inputs
@@ -54,5 +56,5 @@ rule get_assemblies:
         "assemblies.done",
     message:
         "Spades has finished performing the de novo assemblies."
-    script:
+    shell:
         "touch {output}"
