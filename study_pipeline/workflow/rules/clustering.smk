@@ -55,6 +55,7 @@ rule run_poppunk:
     threads: workflow.cores
     params:
         outdir="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples",
+        db="../{pathogen}_poppunk"
     shell:
-        "( poppunk --assign-query --ref-db ../ecoli_poppunk --q-files {input} --output {params.outdir} "
+        "( poppunk --assign-query --ref-db {params.db} --q-files {input} --output {params.outdir} "
         "--ignore-length --threads {threads} ) 2> {log}"
