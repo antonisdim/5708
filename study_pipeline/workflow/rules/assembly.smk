@@ -8,7 +8,7 @@ __license__ = "MIT"
 
 import pandas as pd
 
-SAMPLE_TABLE = "samples.tsv"
+from scripts.utilities import read_sample_list
 
 
 rule spades_assembly:
@@ -36,9 +36,7 @@ rule spades_assembly:
 def get_assemblies(_):
     """Get the paths to the contigs"""
 
-    samples = pd.read_csv(
-        SAMPLE_TABLE, sep="\t", names=["Sample_Acc", "Species"], usecols=["Sample_Acc"]
-    )
+    samples = read_sample_list()[["Sample_Acc"]]
 
     inputs = []
 

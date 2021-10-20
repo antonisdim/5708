@@ -8,7 +8,7 @@ __license__ = "MIT"
 
 import pandas as pd
 
-SAMPLE_TABLE = "samples.tsv"
+from scripts.utilities import read_sample_list
 
 
 rule fastqc_paired_end:
@@ -21,11 +21,11 @@ rule fastqc_paired_end:
         temp("qc/{accession}_R1_adRm_fastqc.html"),
         temp("qc/{accession}_R1_adRm_fastqc.zip"),
         temp("qc/{accession}_R1_adRm_fastqc/summary.txt"),
-        temp(directory("qc/{accession}_R1_adRm_fastqc")),
+        directory("qc/{accession}_R1_adRm_fastqc"),
         temp("qc/{accession}_R2_adRm_fastqc.html"),
         temp("qc/{accession}_R2_adRm_fastqc.zip"),
         temp("qc/{accession}_R2_adRm_fastqc/summary.txt"),
-        temp(directory("qc/{accession}_R2_adRm_fastqc")),
+        directory("qc/{accession}_R2_adRm_fastqc"),
     message:
         "Running fastqc on {input.fastq_r1} and {input.fastq_r2}."
     conda:
@@ -39,9 +39,7 @@ rule fastqc_paired_end:
 def get_qc_summaries(_):
     """Get the paths to the fastqc summary files"""
 
-    samples = pd.read_csv(
-        SAMPLE_TABLE, sep="\t", names=["Sample_Acc", "Species"], usecols=["Sample_Acc"]
-    )
+    samples = read_sample_list()[["Sample_Acc"]]
 
     inputs = []
 

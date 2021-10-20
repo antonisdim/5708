@@ -29,8 +29,6 @@ SAMPLE_TABLE = "samples.tsv"
 #         inputs.append(f"adRm/{sam['Sample_Acc']}_R1_adRm.fastq.gz")
 #
 #     return inputs
-
-
 # rule create_poppunk_ecoli_qfile:
 #     input:
 #         qc_check="qc/fastqc_summary.tsv",
