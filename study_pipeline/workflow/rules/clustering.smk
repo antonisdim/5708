@@ -8,40 +8,55 @@ __license__ = "MIT"
 
 import pandas as pd
 
-SAMPLE_TABLE = "samples.tsv"
+from scripts.utilities import get_ecoli_sb27, get_ecoli_all
 
 
-# def get_ecoli_samples(_):
-#     """Get the E. coli samples"""
-#
-#     samples = pd.read_csv(
-#         SAMPLE_TABLE,
-#         sep="\t",
-#         names=["Sample_Acc", "Species"],
-#         usecols=["Sample_Acc", "Species"],
-#     )
-#
-#     ecoli_samples = samples[samples["Species"] == "Escherichia coli"]
-#
-#     inputs = []
-#
-#     for key, sam in ecoli_samples.iterrows():
-#         inputs.append(f"adRm/{sam['Sample_Acc']}_R1_adRm.fastq.gz")
-#
-#     return inputs
-# rule create_poppunk_ecoli_qfile:
-#     input:
-#         qc_check="qc/fastqc_summary.tsv",
-#         sample_list=get_ecoli_samples,
-#     output:
-#         "poppunk_ecoli/qfile.txt",
-#     message:
-#         "Creating the query file for poppunk for E. coli."
-#     shell:
-#         "for i in {input.sample_list}; do basename $i _R1_adRm.fastq.gz | awk -F ',' "
-#         '\'{{print  $1"\t" "adRm/"$1"_R1_adRm.fastq.gz\t" "adRm/"$1"_R2_adRm.fastq.gz"}}\'; '
-#         "done 1> {output}"
-#
+def get_sb27_ecoli(_):
+    """Get the paths for the SB27 ecoli only."""
+
+    samples_list = get_ecoli_sb27()
+    inputs_sb27_ecoli = []
+
+    for sample in samples_list:
+        inputs_sb27_ecoli.append(f"assemblies/{sample}_scaffolds.fasta")
+
+    return inputs_sb27_ecoli
+
+
+rule create_poppunk_ecoli_qfile_sb27:
+    input:
+        sample_list=get_sb27_ecoli,
+    output:
+        "poppunk_ecoli/SB27_ecoli_scaffold_paths.txt",
+    message:
+        "Creating the query file for PopPUNK for the SB27 E. coli samples only."
+    shell:
+        "for path in {input.sample_list}; do readlink -f $path; done 1> {output}"
+
+
+def get_all_ecoli(_):
+    """Get the paths for the SB27 ecoli plus context samples."""
+
+    samples_list = get_ecoli_all()
+    inputs_all_ecoli = []
+
+    for sample in samples_list:
+        inputs_all_ecoli.append(f"assemblies/{sample}_scaffolds.fasta")
+
+    return inputs_all_ecoli
+
+
+rule create_poppunk_ecoli_qfile_all:
+    input:
+        sample_list=get_all_ecoli,
+    output:
+        "poppunk_ecoli/SB27_plus_contx_ecoli_scaffold_paths.txt",
+    message:
+        "Creating the query file for PopPUNK for the SB27 and context E. coli samples."
+    shell:
+        "for path in {input.sample_list}; do readlink -f $path; done 1> {output}"
+
+
 # #todo paths above are wrong change them
 #
 # rule run_poppunk_ecoli:
