@@ -17,5 +17,5 @@ rule all:
     input:
         # "qc/fastqc_summary.tsv",
         # "assemblies.done",
-        "poppunk_ecoli/SB27_ecoli_scaffold_paths.txt",
-        "poppunk_ecoli/SB27_plus_contx_ecoli_scaffold_paths.txt",
+        "poppunk_ecoli/SB27_no_contx_ecoli_samples/SB27_no_contx_ecoli_samples_clusters.csv",
+        "poppunk_ecoli/SB27_plus_contx_ecoli_samples/SB27_plus_contx_ecoli_samples_clusters.csv",

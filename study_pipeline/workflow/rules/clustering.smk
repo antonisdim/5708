@@ -11,63 +11,50 @@ import pandas as pd
 from scripts.utilities import get_ecoli_sb27, get_ecoli_all
 
 
-def get_sb27_ecoli(_):
-    """Get the paths for the SB27 ecoli only."""
+def get_sb27_paths(wildcards):
+    """Get the paths for the SB27 (and context samples)."""
 
-    samples_list = get_ecoli_sb27()
-    inputs_sb27_ecoli = []
+    if wildcards.dataset == "no":
+        samples_list = get_ecoli_sb27() if wildcards.pathogen == "ecoli" else []
+    else:
+        samples_list = get_ecoli_all() if wildcards.pathogen == "ecoli" else []
+
+    input_paths = []
 
     for sample in samples_list:
-        inputs_sb27_ecoli.append(f"assemblies/{sample}_scaffolds.fasta")
+        input_paths.append(f"assemblies/{sample}_scaffolds.fasta")
 
-    return inputs_sb27_ecoli
+    return input_paths
 
 
-rule create_poppunk_ecoli_qfile_sb27:
+rule create_poppunk_qfile:
     input:
-        sample_list=get_sb27_ecoli,
+        sample_list=get_sb27_paths,
     output:
-        "poppunk_ecoli/SB27_ecoli_scaffold_paths.txt",
+        "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_scaffold_paths.txt",
     message:
-        "Creating the query file for PopPUNK for the SB27 E. coli samples only."
+        "Creating the query file for PopPUNK for the SB27 {wildcards.pathogen} samples, "
+        "{wildcards.dataset} context samples."
+    wildcard_constraints:
+        dataset="(no|plus)",
     shell:
         "for path in {input.sample_list}; do readlink -f $path; done 1> {output}"
 
 
-def get_all_ecoli(_):
-    """Get the paths for the SB27 ecoli plus context samples."""
-
-    samples_list = get_ecoli_all()
-    inputs_all_ecoli = []
-
-    for sample in samples_list:
-        inputs_all_ecoli.append(f"assemblies/{sample}_scaffolds.fasta")
-
-    return inputs_all_ecoli
-
-
-rule create_poppunk_ecoli_qfile_all:
+rule run_poppunk:
     input:
-        sample_list=get_all_ecoli,
+        "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_scaffold_paths.txt",
+    log:
+        "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/poppunk.log",
     output:
-        "poppunk_ecoli/SB27_plus_contx_ecoli_scaffold_paths.txt",
+        "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/SB27_{dataset}_contx_{pathogen}_samples_clusters.csv",
     message:
-        "Creating the query file for PopPUNK for the SB27 and context E. coli samples."
+        "Running PopPUNK for the SB27 samples of {wildcards.pathogen}, {wildcards.dataset} context samples."
+    conda:
+        "../envs/poppunk.yaml"
+    threads: workflow.cores
+    params:
+        outdir="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples",
     shell:
-        "for path in {input.sample_list}; do readlink -f $path; done 1> {output}"
-
-
-# #todo paths above are wrong change them
-#
-# rule run_poppunk_ecoli:
-#     input:
-#         "poppunk_ecoli/qfile.txt",
-#     log:
-#         "poppunk_ecoli/ecoli_cluster.log",
-#     output:
-#         "who knows"
-#     message:
-#         "Running clustering with PopPUNK for E. coli samples."
-#     conda:
-#         "../envs/poppunk.yaml"
-#     shell:
+        "( poppunk --assign-query --ref-db ../ecoli_poppunk --q-files {input} --output {params.outdir} "
+        "--ignore-length --threads {threads} ) 2> {log}"
