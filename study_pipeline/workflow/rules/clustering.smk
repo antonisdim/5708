@@ -8,18 +8,13 @@ __license__ = "MIT"
 
 import pandas as pd
 
-from scripts.utilities import get_ecoli_sb27, get_ecoli_all
+from scripts.utilities import get_correct_samples
 
 
 def get_sb27_paths(wildcards):
     """Get the paths for the SB27 (and context samples)."""
 
-    if wildcards.dataset == "no":
-        samples_list = get_ecoli_sb27() if wildcards.pathogen == "ecoli" else []
-    else:
-        samples_list = get_ecoli_all() if wildcards.pathogen == "ecoli" else []
-
-    input_paths = []
+    samples_list = get_correct_samples(wildcards)
 
     for sample in samples_list:
         input_paths.append(f"assemblies/{sample}_scaffolds.fasta")
@@ -55,7 +50,24 @@ rule run_poppunk:
     threads: workflow.cores
     params:
         outdir="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples",
-        db="../{pathogen}_poppunk"
+        db="{pathogen}_poppunk",
     shell:
         "( poppunk --assign-query --ref-db {params.db} --q-files {input} --output {params.outdir} "
         "--ignore-length --threads {threads} ) 2> {log}"
+
+
+rule process_poppunk:
+    input:
+        "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/SB27_{dataset}_contx_{pathogen}_samples_clusters.csv",
+    output:
+        primary_clusters="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/"
+        "SB27_{dataset}_contx_{pathogen}_samples_primary_clusters.tsv",
+        cluster_counts="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/"
+        "SB27_{dataset}_contx_{pathogen}_samples_primary_cluster_counts.tsv",
+    message:
+        "Quick summary of the PopPUNK cluster output for the SB27 samples of  {wildcards.pathogen}, "
+        "{wildcards.dataset} context samples."
+    conda:
+        "../envs/pandas.yaml"
+    script:
+        "../scripts/poppunk_summary.py"
