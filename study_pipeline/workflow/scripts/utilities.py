@@ -23,40 +23,39 @@ def read_sample_list():
     return samples
 
 
-def get_ecoli_sb27():
+def get_right_pathogen(wildcards, checkpoints):
     """Get the E. coli samples"""
 
     samples = read_sample_list()
-    ecoli_samples_sb27 = samples[
-        (samples["Species"] == "Escherichia coli") & (samples["Data_source"] == "SB27")
-    ]
-    inputs_sb27_ecoli = []
 
-    for key, sam in ecoli_samples_sb27.iterrows():
-        inputs_sb27_ecoli.append(sam["Sample_Acc"])
+    species = ""
+    if wildcards.pathogen == "ecoli":
+        species = "Escherichia coli"
 
-    return inputs_sb27_ecoli
+    # check if we need context or not
+    if wildcards.dataset == "no":
+        ecoli_samples = samples[
+            (samples["Species"] == species) & (samples["Data_source"] == "SB27")
+        ]
+    else:
+        ecoli_samples = samples[(samples["Species"] == species)]
 
+    # check what cluster if necessary
+    if wildcards.num:
+        poppunk = checkpoints.process_poppunk.get(
+            pathogen=wildcards.pathogen, dataset=wildcards.dataset
+        )
+        primary_clusters = pd.read_csv(poppunk.output.primary_clusters, sep="\t")
+        cluster_samples = primary_clusters[
+            (primary_clusters["Cluster"] == int(wildcards.num))
+        ]
+        ecoli_samples = ecoli_samples[
+            ecoli_samples["Sample_Acc"].isin(cluster_samples["Taxon"])
+        ]
 
-def get_ecoli_all():
-    """Get the E. coli samples"""
-
-    samples = read_sample_list()
-    ecoli_samples_all = samples[(samples["Species"] == "Escherichia coli")]
     inputs_all_ecoli = []
 
-    for key, sam in ecoli_samples_all.iterrows():
+    for key, sam in ecoli_samples.iterrows():
         inputs_all_ecoli.append(sam["Sample_Acc"])
 
     return inputs_all_ecoli
-
-
-def get_correct_samples(wildcards):
-    """Get the paths for the SB27 (and context samples)."""
-
-    if wildcards.dataset == "no":
-        samples_list = get_ecoli_sb27() if wildcards.pathogen == "ecoli" else []
-    else:
-        samples_list = get_ecoli_all() if wildcards.pathogen == "ecoli" else []
-
-    return samples_list

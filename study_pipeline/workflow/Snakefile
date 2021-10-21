@@ -11,11 +11,14 @@ include: "rules/adapterremoval.smk"
 include: "rules/qc.smk"
 include: "rules/clustering.smk"
 include: "rules/assembly.smk"
+include: "rules/mlst.smk"
 
 
 rule all:
     input:
         # "qc/fastqc_summary.tsv",
         # "assemblies.done",
-        "poppunk_ecoli/SB27_no_contx_ecoli_samples/SB27_no_contx_ecoli_samples_primary_cluster_counts.tsv",
-        "poppunk_ecoli/SB27_plus_contx_ecoli_samples/SB27_plus_contx_ecoli_samples_primary_cluster_counts.tsv",
+        # "poppunk_ecoli/SB27_no_contx_ecoli_samples/SB27_no_contx_ecoli_samples_primary_cluster_counts.tsv",
+        # "poppunk_ecoli/SB27_plus_contx_ecoli_samples/SB27_plus_contx_ecoli_samples_primary_cluster_counts.tsv",
+        "mlst/SB27_ecoli_no_contx_cluster_0.tsv",
+        "mlst/SB27_ecoli_plus_contx_cluster_0.tsv",

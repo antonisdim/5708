@@ -6,15 +6,14 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-import pandas as pd
 
-from scripts.utilities import get_correct_samples
+from scripts.utilities import get_right_pathogen
 
 
 def get_sb27_paths(wildcards):
     """Get the paths for the SB27 (and context samples)."""
 
-    samples_list = get_correct_samples(wildcards)
+    samples_list = get_right_pathogen(wildcards, checkpoints)
 
     for sample in samples_list:
         input_paths.append(f"assemblies/{sample}_scaffolds.fasta")
@@ -56,7 +55,7 @@ rule run_poppunk:
         "--ignore-length --threads {threads} ) 2> {log}"
 
 
-rule process_poppunk:
+checkpoint process_poppunk:
     input:
         "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/SB27_{dataset}_contx_{pathogen}_samples_clusters.csv",
     output:
