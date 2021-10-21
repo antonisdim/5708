@@ -14,6 +14,7 @@ def get_sb27_paths(wildcards):
     """Get the paths for the SB27 (and context samples)."""
 
     samples_list = get_right_pathogen(wildcards, checkpoints)
+    input_paths = []
 
     for sample in samples_list:
         input_paths.append(f"assemblies/{sample}_scaffolds.fasta")
@@ -52,17 +53,17 @@ rule run_poppunk:
         db="{pathogen}_poppunk",
     shell:
         "( poppunk --assign-query --ref-db {params.db} --q-files {input} --output {params.outdir} "
-        "--ignore-length --threads {threads} ) 2> {log}"
+        "--ignore-length --microreact --threads {threads} ) 2> {log}"
 
 
 checkpoint process_poppunk:
     input:
         "poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/SB27_{dataset}_contx_{pathogen}_samples_clusters.csv",
     output:
-        primary_clusters="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/"
-        "SB27_{dataset}_contx_{pathogen}_samples_primary_clusters.tsv",
+        cluster_ids="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/"
+        "SB27_{dataset}_contx_{pathogen}_samples_cluster_ids.tsv",
         cluster_counts="poppunk_{pathogen}/SB27_{dataset}_contx_{pathogen}_samples/"
-        "SB27_{dataset}_contx_{pathogen}_samples_primary_cluster_counts.tsv",
+        "SB27_{dataset}_contx_{pathogen}_samples_cluster_counts.tsv",
     message:
         "Quick summary of the PopPUNK cluster output for the SB27 samples of  {wildcards.pathogen}, "
         "{wildcards.dataset} context samples."

@@ -52,3 +52,17 @@ rule aggregate_mlst:
         "context, for PopPUNK cluster {wildcards.num}."
     shell:
         "cat {input} > {output}"
+
+
+rule count_mlst:
+    input:
+        "mlst/SB27_{pathogen}_{dataset}_contx_cluster_{num}.tsv",
+    output:
+        "mlst/SB27_{pathogen}_{dataset}_contx_cluster_{num}_mlst_count.tsv",
+    message:
+        "Counting the number of individuals for cluster {wildcards.num} of {wildcards.pathogen}, from "
+        "SB27, {wildcards.dataset} context."
+    conda:
+        "../envs/pandas.yaml"
+    script:
+        "../scripts/count_mlst.py"

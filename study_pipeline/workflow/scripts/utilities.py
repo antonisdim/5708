@@ -41,11 +41,11 @@ def get_right_pathogen(wildcards, checkpoints):
         ecoli_samples = samples[(samples["Species"] == species)]
 
     # check what cluster if necessary
-    if wildcards.num:
+    if hasattr(wildcards, 'num'):
         poppunk = checkpoints.process_poppunk.get(
             pathogen=wildcards.pathogen, dataset=wildcards.dataset
         )
-        primary_clusters = pd.read_csv(poppunk.output.primary_clusters, sep="\t")
+        primary_clusters = pd.read_csv(poppunk.output.cluster_ids, sep="\t")
         cluster_samples = primary_clusters[
             (primary_clusters["Cluster"] == int(wildcards.num))
         ]

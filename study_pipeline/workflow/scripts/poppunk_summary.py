@@ -24,14 +24,12 @@ def poppunk_summary(input_file, out_primary_clusters, out_cluster_counts):
         .str.replace("_scaffolds.fasta", "")
     )
 
-    # get the primary cluster
-    poppunk_dump[["Main_Cluster", "Rest_Clusters"]] = poppunk_dump["Cluster"].str.split(
-        "_", 1, expand=True
-    )
+    # give unique ids to each cluster
+    poppunk_dump['Cluster_id'] = poppunk_dump.groupby("Cluster").ngroup().add(1)
 
     # get the sample and its primary cluster
-    primary_clusters = poppunk_dump[["Taxon", "Main_Cluster"]].rename(
-        columns={"Main_Cluster": "Cluster"}
+    primary_clusters = poppunk_dump[["Taxon", "Cluster_id"]].rename(
+        columns={"Cluster_id": "Cluster"}
     )
 
     # store primary clusters to file
@@ -50,6 +48,6 @@ if __name__ == "__main__":
     # noinspection PyUnresolvedReferences
     poppunk_summary(
         input_file=snakemake.input[0],
-        out_primary_clusters=snakemake.output.primary_clusters,
+        out_primary_clusters=snakemake.output.cluster_ids,
         out_cluster_counts=snakemake.output.cluster_counts,
     )
