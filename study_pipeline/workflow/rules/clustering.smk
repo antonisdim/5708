@@ -53,7 +53,8 @@ rule run_poppunk:
         db="{pathogen}_poppunk",
     shell:
         "( poppunk --assign-query --ref-db {params.db} --q-files {input} --output {params.outdir} "
-        "--ignore-length --microreact --threads {threads} ) 2> {log}"
+        "--ignore-length --microreact --distances {params.db}/{params.db}.dists.pkl "
+        "--update-db --threads {threads} ) 2> {log}"
 
 
 checkpoint process_poppunk:
