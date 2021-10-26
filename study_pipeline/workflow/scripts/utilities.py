@@ -32,16 +32,19 @@ def get_right_pathogen(wildcards, checkpoints):
     if wildcards.pathogen == "ecoli":
         species = "Escherichia coli"
 
+    patho_samples = pd.DataFrame()
+
     # check if we need context or not
-    if wildcards.dataset == "no":
-        ecoli_samples = samples[
-            (samples["Species"] == species) & (samples["Data_source"] == "SB27")
-        ]
-    else:
-        ecoli_samples = samples[(samples["Species"] == species)]
+    if hasattr(wildcards, "dataset"):
+        if wildcards.dataset == "no":
+            patho_samples = samples[
+                (samples["Species"] == species) & (samples["Data_source"] == "SB27")
+            ]
+        else:
+            patho_samples = samples[(samples["Species"] == species)]
 
     # check what cluster if necessary
-    if hasattr(wildcards, 'num'):
+    if hasattr(wildcards, "num"):
         poppunk = checkpoints.process_poppunk.get(
             pathogen=wildcards.pathogen, dataset=wildcards.dataset
         )
@@ -49,13 +52,13 @@ def get_right_pathogen(wildcards, checkpoints):
         cluster_samples = primary_clusters[
             (primary_clusters["Cluster"] == int(wildcards.num))
         ]
-        ecoli_samples = ecoli_samples[
-            ecoli_samples["Sample_Acc"].isin(cluster_samples["Taxon"])
+        patho_samples = patho_samples[
+            patho_samples["Sample_Acc"].isin(cluster_samples["Taxon"])
         ]
 
-    inputs_all_ecoli = []
+    inputs_all = []
 
-    for key, sam in ecoli_samples.iterrows():
-        inputs_all_ecoli.append(sam["Sample_Acc"])
+    for key, sam in patho_samples.iterrows():
+        inputs_all.append(sam["Sample_Acc"])
 
-    return inputs_all_ecoli
+    return inputs_all

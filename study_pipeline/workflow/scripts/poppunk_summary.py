@@ -25,7 +25,7 @@ def poppunk_summary(input_file, out_primary_clusters, out_cluster_counts):
     )
 
     # give unique ids to each cluster
-    poppunk_dump['Cluster_id'] = poppunk_dump.groupby("Cluster").ngroup().add(1)
+    poppunk_dump["Cluster_id"] = poppunk_dump.groupby("Cluster").ngroup().add(1)
 
     # get the sample and its primary cluster
     primary_clusters = poppunk_dump[["Taxon", "Cluster_id"]].rename(

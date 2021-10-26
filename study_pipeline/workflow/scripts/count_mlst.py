@@ -15,7 +15,7 @@ def count_mlst(input_file, output_counts):
 
     # get the number of columns
     with open(input_file) as fin:
-        reader = csv.reader(fin, delimiter='\t')
+        reader = csv.reader(fin, delimiter="\t")
         first_row = next(reader)
         num_cols = len(first_row)
 
@@ -31,7 +31,7 @@ def count_mlst(input_file, output_counts):
     header = st_info + loci
 
     # read the input file
-    mlst_table = pd.read_csv(input_file, sep='\t', names=header)
+    mlst_table = pd.read_csv(input_file, sep="\t", names=header)
 
 
 if __name__ == "__main__":
