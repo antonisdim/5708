@@ -32,7 +32,7 @@ def get_right_pathogen(wildcards, checkpoints):
     if wildcards.pathogen == "ecoli":
         species = "Escherichia coli"
 
-    patho_samples = pd.DataFrame()
+    patho_samples = samples[(samples["Species"] == species)]
 
     # check if we need context or not
     if hasattr(wildcards, "dataset"):

@@ -13,14 +13,13 @@ include: "rules/clustering.smk"
 include: "rules/assembly.smk"
 include: "rules/mlst.smk"
 include: "rules/annotation.smk"
+include: "rules/pangenome.smk"
 
 
 rule all:
     input:
         # "qc/fastqc_summary.tsv",
         # "assemblies.done",
-        "annotation_ecoli.done",
-        # "poppunk_ecoli/SB27_no_contx_ecoli_samples/SB27_no_contx_ecoli_samples_cluster_counts.tsv",
-        # "poppunk_ecoli/SB27_plus_contx_ecoli_samples/SB27_plus_contx_ecoli_samples_cluster_counts.tsv",
-        # "mlst/SB27_ecoli_no_contx_cluster_0.tsv",
-        # "mlst/SB27_ecoli_plus_contx_cluster_0.tsv",
+        # "annotation_ecoli.done",
+        # "panaroo_ecoli/ecoli_batches.tsv",
+        "panaroo_ecoli/pangenome_merged/pan_genome_reference.fa",
