@@ -23,3 +23,4 @@ rule all:
         # "annotation_ecoli.done",
         # "panaroo_ecoli/ecoli_batches.tsv",
         "panaroo_ecoli/pangenome_merged/pan_genome_reference.fa",
+        "panaroo_ecoli/pangenome_merged/core_gene_alignment.aln",

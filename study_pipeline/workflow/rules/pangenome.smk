@@ -88,14 +88,33 @@ rule merge_panaroo_graphs:
     input:
         get_panaroo_graphs,
     log:
-        "panaroo_{pathogen}/pangenome_merged/panaroo.log",
+        "panaroo_{pathogen}/panaroo_merged.log",
     output:
-        outdir=directory("panaroo_{pathogen}/pangenome_merged"),
         pangenome_ref="panaroo_{pathogen}/pangenome_merged/pan_genome_reference.fa",
     message:
-        "Merging the panaroo graphs into a single one"
+        "Merging the panaroo graphs into a single one."
     threads: workflow.cores
     conda:
         "../envs/panaroo.yaml"
+    params:
+        outdir=directory("panaroo_{pathogen}/pangenome_merged"),
     shell:
-        "(panaroo-merge -d {input} -o {output.outdir} -t {threads}) 2> {log}"
+        "(panaroo-merge -d {input} -o {params.outdir} -t {threads}) 2> {log}"
+
+
+rule get_core_msa:
+    input:
+        pangenome_ref="panaroo_{pathogen}/pangenome_merged/pan_genome_reference.fa",
+    log:
+        "panaroo_{pathogen}/panaroo_msa.log",
+    output:
+        msa="panaroo_{pathogen}/pangenome_merged/core_gene_alignment.aln",
+    message:
+        "Getting the core gene MSA for the {wildcards.pathogen} pangenome."
+    threads: workflow.cores
+    conda:
+        "../envs/panaroo.yaml"
+    params:
+        outdir="panaroo_{pathogen}/pangenome_merged",
+    shell:
+        "(panaroo-msa -o {params.outdir} -a core --aligner mafft --core_threshold 0.98 -t {threads}) 2> {log}"
