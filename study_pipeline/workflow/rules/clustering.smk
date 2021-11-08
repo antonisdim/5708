@@ -73,7 +73,7 @@ checkpoint process_poppunk:
         "../scripts/poppunk_summary.py"
 
 
-rule run_fastbaps:
+checkpoint run_fastbaps:
     input:
         "panaroo_{pathogen}/pangenome_merged/snps_core_gene_alignment.aln",
     log:
@@ -84,6 +84,6 @@ rule run_fastbaps:
         "Running fastbaps for the SB27 and context samples of {wildcards.pathogen}."
     conda:
         "../envs/fastbaps.yaml"
-    threads: workflow.cores
+    # threads: workflow.cores
     shell:
-        "(Rscript scripts/run_fastbaps.R {input} {output} {threads}) &> {log}"
+        "(Rscript scripts/run_fastbaps.R {input} {output} 1) &> {log}"

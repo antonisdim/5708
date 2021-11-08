@@ -8,7 +8,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 msa <- args[1]
 cluster_file <- args[2]
-threads <- integer(args[3])
+threads <- as.integer(args[3])
 
 #load libs
 library(fastbaps)
