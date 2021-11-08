@@ -1,0 +1,5 @@
+channels:
+  - bioconda
+  - r
+dependencies:
+  - fastbaps=1.0.4

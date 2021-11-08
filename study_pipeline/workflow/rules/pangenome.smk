@@ -118,3 +118,18 @@ rule get_core_msa:
         outdir="panaroo_{pathogen}/pangenome_merged",
     shell:
         "(panaroo-msa -o {params.outdir} -a core --aligner mafft --core_threshold 0.98 -t {threads}) 2> {log}"
+
+
+rule snp_core_aln:
+    input:
+        msa="panaroo_{pathogen}/pangenome_merged/core_gene_alignment.aln",
+    log:
+        "panaroo_{pathogen}/panaroo_core_snps.log",
+    output:
+        snp_msa="panaroo_{pathogen}/pangenome_merged/snps_core_gene_alignment.aln",
+    message:
+        "Getting the SNP positions from the core gene MSA of the {wildcards.pathogen} pangenome."
+    conda:
+        "../envs/snpsites.yaml"
+    shell:
+        "(snp-sites -m -o {output.snp_msa} {input.msa}) 2> {log}"
