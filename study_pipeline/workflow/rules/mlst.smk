@@ -46,10 +46,10 @@ rule aggregate_mlst:
     input:
         get_mlst_paths,
     output:
-        "mlst/SB27_{pathogen}_{dataset}_contx_cluster_{num}.tsv",
+        "mlst/SB27_{pathogen}_{dataset}_contx_cluster.tsv",
     message:
         "Aggregating all the MLST results for {wildcards.pathogen} from SB27, with {wildcards.dataset} "
-        "context, for PopPUNK cluster {wildcards.num}."
+        "context."
     shell:
         "cat {input} > {output}"
 
