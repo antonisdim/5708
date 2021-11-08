@@ -46,7 +46,7 @@ rule aggregate_mlst:
     input:
         get_mlst_paths,
     output:
-        "mlst/SB27_{pathogen}_{dataset}_contx_cluster.tsv",
+        "mlst/SB27_{pathogen}_{dataset}_contx.tsv",
     message:
         "Aggregating all the MLST results for {wildcards.pathogen} from SB27, with {wildcards.dataset} "
         "context."
@@ -56,12 +56,12 @@ rule aggregate_mlst:
 
 rule count_mlst:
     input:
-        "mlst/SB27_{pathogen}_{dataset}_contx_cluster_{num}.tsv",
+        "mlst/SB27_{pathogen}_{dataset}_contx.tsv",
     output:
-        "mlst/SB27_{pathogen}_{dataset}_contx_cluster_{num}_mlst_count.tsv",
+        "mlst/mlst_summary_SB27_{pathogen}_{dataset}_contx.tsv",
     message:
-        "Counting the number of individuals for cluster {wildcards.num} of {wildcards.pathogen}, from "
-        "SB27, {wildcards.dataset} context."
+        "Counting the number of individuals of {wildcards.pathogen} for each ST, from SB27, "
+        "{wildcards.dataset} context."
     conda:
         "../envs/pandas.yaml"
     script:

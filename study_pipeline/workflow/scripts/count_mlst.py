@@ -31,7 +31,22 @@ def count_mlst(input_file, output_counts):
     header = st_info + loci
 
     # read the input file
-    mlst_table = pd.read_csv(input_file, sep="\t", names=header)
+    mlst_table = pd.read_csv(
+        input_file, sep="\t", names=header, usecols=["Sample", "ST"]
+    )
+
+    # groupby, count, sort
+    mlst_counts = (
+        mlst_table.groupby("ST")
+        .count()
+        .reset_index()
+        .sort_values(by="Sample", ascending=False)
+    )
+
+    # write to file
+    mlst_counts.rename(columns={"Sample": "Sample count"}).to_csv(
+        output_counts, sep="\t", header=True, index=False
+    )
 
 
 if __name__ == "__main__":
