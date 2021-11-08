@@ -7,28 +7,15 @@ __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
 import pandas as pd
-import csv
+
+from utilities import get_mlst_header
 
 
 def count_mlst(input_file, output_counts):
     """Function to count the number of samples per MLST"""
 
-    # get the number of columns
-    with open(input_file) as fin:
-        reader = csv.reader(fin, delimiter="\t")
-        first_row = next(reader)
-        num_cols = len(first_row)
-
-    # start the header
-    st_info = ["Sample", "Scheme", "ST"]
-    loci = []
-
-    # fill in the number of mlst loci
-    if len(st_info) < num_cols:
-        loci = [f"Locus_{num + 1}" for num in range(num_cols - len(st_info))]
-
-    # full header
-    header = st_info + loci
+    # get the header
+    header = get_mlst_header(input_file)
 
     # read the input file
     mlst_table = pd.read_csv(

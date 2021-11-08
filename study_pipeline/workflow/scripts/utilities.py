@@ -7,6 +7,7 @@ __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
 import pandas as pd
+import csv
 
 SAMPLE_TABLE = "samples.tsv"
 
@@ -62,3 +63,26 @@ def get_right_pathogen(wildcards, checkpoints):
         inputs_all.append(sam["Sample_Acc"])
 
     return inputs_all
+
+
+def get_mlst_header(input_file):
+    """Function to get the correct mlst header"""
+
+    # get the number of columns
+    with open(input_file) as fin:
+        reader = csv.reader(fin, delimiter="\t")
+        first_row = next(reader)
+        num_cols = len(first_row)
+
+    # start the header
+    st_info = ["Sample", "Scheme", "ST"]
+    loci = []
+
+    # fill in the number of mlst loci
+    if len(st_info) < num_cols:
+        loci = [f"Locus_{num + 1}" for num in range(num_cols - len(st_info))]
+
+    # full header
+    header = st_info + loci
+
+    return header

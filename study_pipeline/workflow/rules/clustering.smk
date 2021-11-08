@@ -7,7 +7,7 @@ __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
 
-checkpoint run_fastbaps:
+rule run_fastbaps:
     input:
         "panaroo_{pathogen}/pangenome_merged/snps_core_gene_alignment.aln",
     log:
@@ -29,8 +29,22 @@ rule fastbaps_summary:
     output:
         "clustering_{pathogen}/summary_fastbaps_clusters_{pathogen}.tsv",
     message:
-        "Quick summary of the fastbaps cluster output for the SB27 samples of  {wildcards.pathogen}."
+        "Quick summary of the fastbaps cluster output for the SB27 samples of {wildcards.pathogen}."
     conda:
         "../envs/pandas.yaml"
     script:
         "../scripts/fastbaps_summary.py"
+
+
+rule clusters_and_mlst:
+    input:
+        clusters="clustering_{pathogen}/fastbaps_clusters_{pathogen}.csv",
+        mlst="mlst/SB27_{pathogen}_{dataset}_contx.tsv",
+    output:
+        "clustering_{pathogen}/summary_clusters_mlst_{pathogen}_{dataset}_contx.tsv",
+    message:
+        "Counting the number of STs per cluster for {wildcards.pathogen}."
+    conda:
+        "../envs/pandas.yaml"
+    script:
+        "../scripts/clusters_and_mlst.py"
