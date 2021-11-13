@@ -7,7 +7,7 @@ __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
 
-rule run_fastbaps:
+checkpoint run_fastbaps:
     input:
         "panaroo_{pathogen}/pangenome_merged/snps_core_gene_alignment.aln",
     log:

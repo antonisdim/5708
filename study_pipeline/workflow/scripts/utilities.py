@@ -10,6 +10,7 @@ import pandas as pd
 import csv
 
 SAMPLE_TABLE = "samples.tsv"
+REF_GENOME_TABLE = "reference_genomes.tsv"
 
 
 def read_sample_list():
@@ -45,16 +46,14 @@ def get_right_pathogen(wildcards, checkpoints):
             patho_samples = samples[(samples["Species"] == species)]
 
     # check what cluster if necessary
-    if hasattr(wildcards, "num"):
-        poppunk = checkpoints.process_poppunk.get(
-            pathogen=wildcards.pathogen, dataset=wildcards.dataset
+    if hasattr(wildcards, "cluster"):
+        fastbaps = checkpoints.run_fastbaps.get(pathogen=wildcards.pathogen)
+        clusters = pd.read_csv(
+            fastbaps.output[0], sep=",", names=["Sample_Acc", "Cluster"]
         )
-        primary_clusters = pd.read_csv(poppunk.output.cluster_ids, sep="\t")
-        cluster_samples = primary_clusters[
-            (primary_clusters["Cluster"] == int(wildcards.num))
-        ]
+        cluster_samples = clusters[(clusters["Cluster"] == int(wildcards.cluster))]
         patho_samples = patho_samples[
-            patho_samples["Sample_Acc"].isin(cluster_samples["Taxon"])
+            patho_samples["Sample_Acc"].isin(cluster_samples["Sample_Acc"])
         ]
 
     inputs_all = []
@@ -86,3 +85,16 @@ def get_mlst_header(input_file):
     header = st_info + loci
 
     return header
+
+
+def get_ref_genome(wildcards):
+    """Function to get the right ref genome for each fastbaps cluster"""
+
+    ref_genomes = pd.read_csv(
+        REF_GENOME_TABLE,
+        sep="\t",
+    )
+
+    return ref_genomes.loc[
+        ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
+    ][0]
