@@ -6,6 +6,10 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
+import os
+
+from scripts.utilities import REF_GENOME_TABLE
+
 
 include: "rules/adapterremoval.smk"
 include: "rules/qc.smk"
@@ -14,7 +18,12 @@ include: "rules/assembly.smk"
 include: "rules/mlst.smk"
 include: "rules/annotation.smk"
 include: "rules/pangenome.smk"
-include: "rules/bt2_aln.smk"
+
+
+if os.path.isfile(REF_GENOME_TABLE):
+
+    include: "rules/bt2_aln.smk"
+    include: "rules/seq_stats.smk"
 
 
 rule all:
@@ -28,4 +37,4 @@ rule all:
         # "clustering_ecoli/summary_fastbaps_clusters_ecoli.tsv",
         # "mlst/mlst_summary_SB27_ecoli_plus_contx.tsv",
         # "clustering_ecoli/summary_clusters_mlst_ecoli_plus_contx.tsv",
-        "aln_ecoli_lin15.done",
+        "bt2_alignments_ecoli/ecoli_cluster_15_coverage_stats.tsv",

@@ -1,0 +1,4 @@
+channels:
+  - bioconda
+dependencies:
+  - htsbox=r346

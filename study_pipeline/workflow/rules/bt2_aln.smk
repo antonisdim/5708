@@ -14,15 +14,17 @@ MAX_FRAG_LEN = 1000
 
 rule samtools_index_accession:
     input:
-        "refs/{pathogen}/{accession}.fasta.gz",
+        zip="refs/{pathogen}/{accession}.fasta.gz",
+        unzip="refs/{pathogen}/{accession}.fasta",
     output:
         "refs/{pathogen}/{accession}.fasta.gz.fai",
+        "refs/{pathogen}/{accession}.fasta.fai",
     message:
         "Indexing fasta file with accession {wildcards.accession} for taxon {wildcards.pathogen}."
     conda:
         "../envs/samtools.yaml"
     shell:
-        "samtools faidx {input}"
+        "samtools faidx {input.zip} && samtools faidx {input.unzip}"
 
 
 rule bowtie_index_accession:
@@ -56,8 +58,8 @@ rule bowtie_align_accession_paired_end:
     log:
         "bt2_alignments_{pathogen}/{sample}_{accession}.log",
     output:
-        bam_file="bt2_alignments_{pathogen}/{sample}-{accession}.bam",
-        bai_file="bt2_alignments_{pathogen}/{sample}-{accession}.bam.bai",
+        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam",
+        bai_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam.bai",
     params:
         basename="refs/{pathogen}/{accession}",
     threads: 4
@@ -71,29 +73,3 @@ rule bowtie_align_accession_paired_end:
         "-1 {input.fastq_r1} -2 {input.fastq_r2} "
         "| samtools sort -O bam -o {output.bam_file} && samtools index {output.bam_file} "
         ") 2> {log}"
-
-
-def get_cluster_samples(wildcards):
-    """Get the samples belonging to a cluster for alignments"""
-
-    samples_list = get_right_pathogen(wildcards, checkpoints)
-    input_paths = []
-
-    ref = get_ref_genome(wildcards)
-
-    for sample in samples_list:
-        input_paths.append(f"bt2_alignments_{wildcards.pathogen}/{sample}-{ref}.bam")
-
-    return input_paths
-
-
-rule aln_done:
-    input:
-        get_cluster_samples,
-    output:
-        "aln_{pathogen}_lin{cluster}.done",
-    message:
-        "All local alignemnts with bt2 are done for cluster {wildcards.cluster} "
-        "and pathogen {wildcards.pathogen}"
-    shell:
-        "touch {output}"
