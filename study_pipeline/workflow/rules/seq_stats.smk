@@ -59,18 +59,20 @@ rule summarise_cluster_stats:
     message:
         "Concatenating all the coverage stats for {wildcards.pathogen}."
     shell:
-        "cat {input} > {output}"
+        "printf "
+        '"sample\ttaxon\tref_bases_cov\ttotal_bases_cov\tcoverage\tfraction_ref_cov\tcov_evenness\n" > '
+        "{output} && cat {input} >> {output}"
 
 
 rule consensus_fasta:
     input:
-        bam_file="bt2_alignments_{pathogen}/{sample}-{accession}.bam",
+        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam",
         ref="refs/{pathogen}/{accession}.fasta",
         faidx="refs/{pathogen}/{accession}.fasta.fai",
     log:
-        "seqs_{pathogen}/{sample}_{accession}.log",
+        "seqs_{pathogen}/{sample}_ref_{accession}.log",
     output:
-        "seqs_{pathogen}/{sample}_{accession}.fasta",
+        "seqs_{pathogen}/{sample}_ref_{accession}.fasta",
     message:
         "Creating the consensus fasta sequence for sample {wildcards.sample} for "
         "{wildcards.pathogen}."
@@ -79,3 +81,46 @@ rule consensus_fasta:
     shell:
         "(htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> "
         "{output}) 2> {log}"
+
+
+rule unknown_bases:
+    input:
+        "seqs_{pathogen}/{sample}_ref_{accession}.fasta",
+    output:
+        temp("seqs_{pathogen}/{sample}_ncount_{accession}.txt")
+    message:
+        "Counting the number of unknown bases in the consenus fasta sequence for sample "
+        "{wildcards.sample} for {wildcards.pathogen}."
+    conda:
+        "../envs/seq.yaml"
+    shell:
+        "seqtk comp {input} | column -t | awk '{{print {wildcards.sample}\"\t\"$1\"\t\"$9/$2*100}}' > "
+        "{output}"
+
+
+def get_cluster_ncounts(wildcards):
+    """Get the samples belonging to a cluster for alignments"""
+
+    samples_list = get_right_pathogen(wildcards, checkpoints)
+    input_paths = []
+
+    ref = get_ref_genome(wildcards)
+
+    for sample in samples_list:
+        input_paths.append(
+            f"seqs_{wildcards.pathogen}/{sample}_ncount_{ref}.txt"
+        )
+
+    return input_paths
+
+
+rule cat_unknown_base_counts:
+    input:
+        get_cluster_ncounts
+    output:
+        "seqs_{pathogen}/{pathogen}_cluster_{cluster}_n_stats.tsv"
+    message:
+        "Getting the number of Ns in consensus fasta seqs across all samples "
+        "for {wildcards.pathogen} cluster {wildcards.cluster}."
+    shell:
+        "cat {input} > {output}"

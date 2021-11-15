@@ -38,3 +38,4 @@ rule all:
         # "mlst/mlst_summary_SB27_ecoli_plus_contx.tsv",
         # "clustering_ecoli/summary_clusters_mlst_ecoli_plus_contx.tsv",
         "bt2_alignments_ecoli/ecoli_cluster_15_coverage_stats.tsv",
+        "seqs_ecoli/ecoli_cluster_15_n_stats.tsv"

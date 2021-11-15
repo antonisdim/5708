@@ -11,16 +11,20 @@ import os
 import pandas as pd
 
 
-def coverage_stats(cov_file, taxon_fasta_idx, taxon, outfile):
+def coverage_stats(cov_file, taxon_fasta_idx, taxon, sample, outfile):
     """
     Function that calculates the pvalue of the coverage. Testing if there was clustering bias during the
     sequencing/the reads that contribute to the identification/abundance of a species come only
     from a specific genomic region
     """
 
-    assert os.stat(cov_file).st_size, f"The file with the coverage stats {cov_file} is empty."
+    assert os.stat(
+        cov_file
+    ).st_size, f"The file with the coverage stats {cov_file} is empty."
 
-    cov_stats = pd.read_csv(cov_file, sep="\t", names=["all_positions", "observed", "expected"])
+    cov_stats = pd.read_csv(
+        cov_file, sep="\t", names=["all_positions", "observed", "expected"]
+    )
 
     all_positions = cov_stats["all_positions"].iloc[0]
     ref_bases_cov = cov_stats["observed"].iloc[0]
@@ -37,7 +41,17 @@ def coverage_stats(cov_file, taxon_fasta_idx, taxon, outfile):
     cov_evenness = coverage / fraction_ref_cov
 
     with open(outfile, "w") as outhandle:
-        print(taxon, ref_bases_cov, total_bases_cov, coverage, fraction_ref_cov, cov_evenness, file=outhandle, sep="\t")
+        print(
+            sample,
+            taxon,
+            ref_bases_cov,
+            total_bases_cov,
+            coverage,
+            fraction_ref_cov,
+            cov_evenness,
+            file=outhandle,
+            sep="\t",
+        )
 
 
 def genome_sizes(taxon_fasta_idx):
@@ -57,6 +71,7 @@ if __name__ == "__main__":
     coverage_stats(
         cov_file=snakemake.input[0],
         taxon_fasta_idx=snakemake.input[1],
-        taxon=snakemake.wildcards.orgname,
+        taxon=snakemake.wildcards.pathogen,
+        sample=snakemake.wildcards.sample,
         outfile=snakemake.output[0],
     )
