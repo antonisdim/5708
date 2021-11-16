@@ -39,4 +39,4 @@ rule all:
         # "mlst/mlst_summary_SB27_ecoli_plus_contx.tsv",
         # "clustering_ecoli/summary_clusters_mlst_ecoli_plus_contx.tsv",
         # "seqs_ecoli/ecoli_cluster_15_seq_summary.tsv",
-        "trees_ecoli/ecoli_cluster_15_chromosome_aln.fasta",
+        "trees_ecoli/RAxML_bestTree.ecoli_cluster_15",
