@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+dependencies:
+  - gatk=4.2.3.0
+  - picard=2.26.5
+  - samtools1.14

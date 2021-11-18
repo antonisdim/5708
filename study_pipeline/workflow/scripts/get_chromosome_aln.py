@@ -12,7 +12,7 @@ import pandas as pd
 
 from Bio import SeqIO
 
-from utilities import get_ref_genome
+from utilities import get_ref_genome, genome_chromosome
 
 
 def get_chromosome_aln(fasta_paths, faidx, wild, out_fasta):
@@ -40,20 +40,6 @@ def get_chromosome_aln(fasta_paths, faidx, wild, out_fasta):
 
     with open(out_fasta, "w") as output_handle:
         SeqIO.write(bacterial_chromosomes, output_handle, "fasta")
-
-
-def genome_chromosome(taxon_fasta_idx):
-    """Get the accession for the main chromosome"""
-
-    faidx = pd.read_csv(
-        taxon_fasta_idx,
-        sep="\t",
-        names=["Name", "Length", "Offset", "Linebases", "Linewidth"],
-    )
-
-    chromosome = faidx.sort_values(by="Length", ascending=False).iloc[0, 0]
-
-    return chromosome
 
 
 if __name__ == "__main__":

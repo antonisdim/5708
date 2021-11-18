@@ -98,3 +98,17 @@ def get_ref_genome(wildcards):
     return ref_genomes.loc[
         ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
     ][0]
+
+
+def genome_chromosome(taxon_fasta_idx):
+    """Get the accession for the main chromosome"""
+
+    faidx = pd.read_csv(
+        taxon_fasta_idx,
+        sep="\t",
+        names=["Name", "Length", "Offset", "Linebases", "Linewidth"],
+    )
+
+    chromosome = faidx.sort_values(by="Length", ascending=False).iloc[0, 0]
+
+    return chromosome
