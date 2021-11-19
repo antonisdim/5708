@@ -105,15 +105,15 @@ def get_ref_fasta(wildcards):
 
 rule combine_gvcfs:
     input:
-        ref=get_ref_fasta,
         gvcfs=get_cluster_gvcfs,
+        ref=get_ref_fasta,
     log:
         "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.log",
     output:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.g.vcf.gz",
+        gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.g.vcf.gz",
     message:
         "Combining GVCF files for {wildcards.pathogen} "
     conda:
         "../envs/gatk.yaml"
-    shell:
-        "(gatk CombineGVCFs --reference {input.ref} --variant {input.gvcfs} --output {output}) 2> {log}"
+    wrapper:
+        "v0.80.1/bio/gatk/combinegvcfs"
