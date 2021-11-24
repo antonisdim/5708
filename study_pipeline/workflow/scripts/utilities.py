@@ -31,19 +31,22 @@ def get_right_pathogen(wildcards, checkpoints):
     samples = read_sample_list()
 
     species = ""
+    genus = ""
+
     if wildcards.pathogen == "ecoli":
         species = "Escherichia coli"
+    if wildcards.pathogen == "campylobacter":
+        genus = "Campylobacter"
 
-    patho_samples = samples[(samples["Species"] == species)]
+    if species:
+        patho_samples = samples[(samples["Species"] == species)]
+    else:
+        patho_samples = samples[(samples["Species"].str.contains(genus))]
 
     # check if we need context or not
     if hasattr(wildcards, "dataset"):
         if wildcards.dataset == "no":
-            patho_samples = samples[
-                (samples["Species"] == species) & (samples["Data_source"] == "SB27")
-            ]
-        else:
-            patho_samples = samples[(samples["Species"] == species)]
+            patho_samples = patho_samples[(samples["Data_source"] == "SB27")]
 
     # check what cluster if necessary
     if hasattr(wildcards, "cluster"):

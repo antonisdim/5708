@@ -112,8 +112,27 @@ rule combine_gvcfs:
     output:
         gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.g.vcf.gz",
     message:
-        "Combining GVCF files for {wildcards.pathogen} "
+        "Combining GVCF files for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
         "../envs/gatk.yaml"
     wrapper:
         "v0.80.1/bio/gatk/combinegvcfs"
+
+
+rule genotype_gvcfs:
+    input:
+        gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.g.vcf.gz",
+        ref=get_ref_fasta,
+    log:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_genotype.log",
+    output:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNPs_joint_raw.vcf.gz",
+    message:
+        "Genotyping the cohort of GVCF files for {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/gatk.yaml"
+    shell:
+        "(gatk GenotypeGVCFs --reference {input.ref} --variant {input.gvcf} --output {output}) 2> {log}"
+
+
+# ~/bin/gatk-4.1.2.0/gatk VariantFiltration -R ref_genome/EF523390.1_mask.fasta -V joint_SNP_calling/ancient_SNPs_joint_gen_raw.vcf -O joint_SNP_calling/ancient_SNPs_joint_filtered_4x.vcf --filter-expression "QUAL >= 30.0 && DP >= 4" --filter-name "Q_and_DP_filter"
