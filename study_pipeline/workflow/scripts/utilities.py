@@ -41,12 +41,12 @@ def get_right_pathogen(wildcards, checkpoints):
     if species:
         patho_samples = samples[(samples["Species"] == species)]
     else:
-        patho_samples = samples[(samples["Species"].str.contains(genus))]
+        patho_samples = samples[(samples["Species"].str.contains(genus, na=False))]
 
     # check if we need context or not
     if hasattr(wildcards, "dataset"):
         if wildcards.dataset == "no":
-            patho_samples = patho_samples[(samples["Data_source"] == "SB27")]
+            patho_samples = patho_samples[(patho_samples["Data_source"] == "SB27")]
 
     # check what cluster if necessary
     if hasattr(wildcards, "cluster"):

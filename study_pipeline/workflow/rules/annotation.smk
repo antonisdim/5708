@@ -10,7 +10,7 @@ __license__ = "MIT"
 from scripts.utilities import read_sample_list
 
 
-rule run_prokka_ecoli:
+rule run_prokka:
     input:
         "assemblies/{accession}_scaffolds.fasta",
     log:
@@ -34,21 +34,34 @@ rule run_prokka_ecoli:
     threads: 1
     params:
         outdir="prokka_{pathogen}",
-        db="{pathogen}_poppunk",
     shell:
-        "(prokka"
-        "   --outdir {params.outdir}"
-        "   --force -prefix {wildcards.accession}"
-        "   --addgenes"
-        "   --centre Sanger"
-        "   --compliant"
-        "   --genus Escherichia --species coli"
-        "   --kingdom Bacteria"
-        "   --gcode 11"
-        "   --usegenus"
-        "   --cpus {threads}"
-        "   --evalue 1e-6"
-        "   {input} ) 2> {log}"
+        '(if [[ "{wildcards.pathogen}" == "ecoli" ]]; then '
+        "   prokka "
+        "       --outdir {params.outdir} "
+        "       --force -prefix {wildcards.accession} "
+        "       --addgenes "
+        "       --centre Sanger "
+        "       --compliant "
+        "       --genus Escherichia --species coli "
+        "       --kingdom Bacteria "
+        "       --gcode 11 "
+        "       --usegenus "
+        "       --cpus {threads} "
+        "       --evalue 1e-6 "
+        "       {input}; "
+        "else "
+        "   prokka "
+        "       --outdir {params.outdir} "
+        "       --force -prefix {wildcards.accession} "
+        "       --addgenes "
+        "       --centre Sanger "
+        "       --compliant"
+        "       --kingdom Bacteria "
+        "       --gcode 11 "
+        "       --cpus {threads} "
+        "       --evalue 1e-6 "
+        "       {input}; "
+        "fi) 2> {log}"
 
 
 def get_gff_paths(wildcards):
