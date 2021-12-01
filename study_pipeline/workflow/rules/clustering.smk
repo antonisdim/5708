@@ -38,6 +38,10 @@ rule fastbaps_summary:
 
 rule clusters_and_mlst:
     input:
+        clusters_summary=(
+            "clustering_{pathogen}/summary_fastbaps_clusters_{pathogen}.tsv"
+        ),
+        mlst_summary="mlst/mlst_summary_SB27_{pathogen}_{dataset}_contx.tsv",
         clusters="clustering_{pathogen}/fastbaps_clusters_{pathogen}.csv",
         mlst="mlst/SB27_{pathogen}_{dataset}_contx.tsv",
     output:

@@ -108,9 +108,9 @@ rule combine_gvcfs:
         gvcfs=get_cluster_gvcfs,
         ref=get_ref_fasta,
     log:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.log",
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_cohort.log",
     output:
-        gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.g.vcf.gz",
+        gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_cohort.g.vcf.gz",
     message:
         "Combining GVCF files for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
@@ -121,12 +121,12 @@ rule combine_gvcfs:
 
 rule genotype_gvcfs:
     input:
-        gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_cohort.g.vcf.gz",
+        gvcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_cohort.g.vcf.gz",
         ref=get_ref_fasta,
     log:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_genotype.log",
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_joint_raw.log",
     output:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNPs_joint_raw.vcf.gz",
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_joint_raw.vcf.gz",
     message:
         "Genotyping the cohort of GVCF files for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
@@ -135,4 +135,55 @@ rule genotype_gvcfs:
         "(gatk GenotypeGVCFs --reference {input.ref} --variant {input.gvcf} --output {output}) 2> {log}"
 
 
-# ~/bin/gatk-4.1.2.0/gatk VariantFiltration -R ref_genome/EF523390.1_mask.fasta -V joint_SNP_calling/ancient_SNPs_joint_gen_raw.vcf -O joint_SNP_calling/ancient_SNPs_joint_filtered_4x.vcf --filter-expression "QUAL >= 30.0 && DP >= 4" --filter-name "Q_and_DP_filter"
+rule select_snps:
+    input:
+        vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_joint_raw.vcf.gz",
+        ref=get_ref_fasta,
+    log:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_joint_raw.log",
+    output:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_joint_raw.vcf.gz",
+    message:
+        "Slecting only the SNP variants for {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/gatk.yaml"
+    shell:
+        "(gatk SelectVariants --reference {input.ref} --variant {input.vcf} "
+        "--output {output} --select-type-to-include SNP) 2> {log}"
+
+
+rule filter_variants:
+    input:
+        vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_joint_raw.vcf.gz",
+        ref=get_ref_fasta,
+    log:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.log",
+    output:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.vcf.gz",
+    message:
+        "Filtering the VCF file for {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/gatk.yaml"
+    shell:
+        "(gatk VariantFiltration --reference {input.ref} --variant {input.vcf} --output {output} "
+        '--filter-name "Q_and_DP_filter" --filter-expression "QUAL >= 30.0 && DP >= 5") 2> {log}'
+
+
+rule snp_table:
+    input:
+        vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.vcf.gz",
+        ref=get_ref_fasta,
+    log:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filter_table.log",
+    output:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filter_table.csv",
+    message:
+        "Outputting the filtered SNPs into a table for {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/gatk.yaml"
+    shell:
+        "(gatk VariantsToTable --variant {input.vcf} --reference {input.ref} --output {output} "
+        "--fields CHROM --fields POS --fields ID --fields QUAL --fields REF --fields ALT --fields AC "
+        "--fields AF --fields DP --fields HET --fields HOM-REF --fields HOM-VAR --fields NO-CALL --fields VAR "
+        "--fields NSAMPLES --fields NCALLED --fields MULTI-ALLELIC --split-multi-allelic "
+        "--show-filtered) 2> {log}"
