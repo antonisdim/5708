@@ -176,7 +176,7 @@ rule snp_table:
     log:
         "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filter_table.log",
     output:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filter_table.csv",
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filter_table.tsv",
     message:
         "Outputting the filtered SNPs into a table for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
@@ -187,3 +187,19 @@ rule snp_table:
         "--fields AF --fields DP --fields HET --fields HOM-REF --fields HOM-VAR --fields NO-CALL --fields VAR "
         "--fields NSAMPLES --fields NCALLED --fields MULTI-ALLELIC --split-multi-allelic "
         "--show-filtered) 2> {log}"
+
+
+rule sfs:
+    input:
+        vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.vcf.gz",
+    log:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.log",
+    output:
+        table="gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.tsv",
+        barplot="gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.pdf"
+    message:
+        "Calculating the SFS for {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/pegas.yaml"
+    shell:
+        "(Rscript scripts/sfs.R {input} {output.barplot} {output.table}) &> {log}"

@@ -40,4 +40,5 @@ rule all:
         # "seqs_ecoli/ecoli_cluster_15_seq_summary.tsv",
         # "trees_ecoli/RAxML_bestTree.ecoli_cluster_15",
         # "clustering_campylobacter/summary_clusters_mlst_campylobacter_plus_contx.tsv",
-        "gatk_ecoli/ecoli_cluster_15_SNP_filter_table.csv",
+        "gatk_ecoli/ecoli_cluster_15_SNP_filter_table.tsv",
+        "gatk_ecoli/ecoli_cluster_15_sfs.pdf"
