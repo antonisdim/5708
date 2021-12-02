@@ -22,5 +22,9 @@ rule consensus_fasta:
     conda:
         "../envs/htsbox.yaml"
     shell:
-        "(htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> "
-        "{output}) 2> {log}"
+        'sample=$"{wildcards.sample}";'
+        'if [[ "$sample" == *"SB27"* ]]; then'
+        "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> {output}) 2> {log};"
+        "else "
+        "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M {input.bam_file} 1> {output}) 2> {log};"
+        "fi"

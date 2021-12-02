@@ -56,7 +56,7 @@ rule bowtie_align_accession_paired_end:
         fastq_r2="adRm/{sample}_R2_adRm.fastq.gz",
         db_idx="refs/{pathogen}/{accession}.1.bt2l",
     log:
-        "bt2_alignments_{pathogen}/{sample}_{accession}.log",
+        "bt2_alignments_{pathogen}/{sample}_ref_{accession}.log",
     output:
         bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam",
         bai_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam.bai",
