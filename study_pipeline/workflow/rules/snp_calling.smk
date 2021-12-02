@@ -196,7 +196,7 @@ rule sfs:
         "gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.log",
     output:
         table="gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.tsv",
-        barplot="gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.pdf"
+        barplot="gatk_{pathogen}/{pathogen}_cluster_{cluster}_sfs.pdf",
     message:
         "Calculating the SFS for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:

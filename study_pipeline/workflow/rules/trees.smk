@@ -8,7 +8,12 @@ __license__ = "MIT"
 
 import os
 
-from scripts.utilities import get_right_pathogen, get_ref_genome
+from scripts.utilities import (
+    OUT_GENOME_TABLE,
+    get_right_pathogen,
+    get_ref_genome,
+    get_out_genome,
+)
 
 
 def get_cluster_fasta_consensus(wildcards):
@@ -18,6 +23,10 @@ def get_cluster_fasta_consensus(wildcards):
     input_paths = []
 
     ref = get_ref_genome(wildcards)
+
+    if os.path.isfile(OUT_GENOME_TABLE):
+        outgroup = get_out_genome(wildcards)
+        samples_list.append(outgroup)
 
     for sample in samples_list:
         input_paths.append(f"seqs_{wildcards.pathogen}/{sample}_ref_{ref}.fasta")

@@ -11,6 +11,7 @@ import csv
 
 SAMPLE_TABLE = "samples.tsv"
 REF_GENOME_TABLE = "reference_genomes.tsv"
+OUT_GENOME_TABLE = "outgroup_genomes.tsv"
 
 
 def read_sample_list():
@@ -115,3 +116,16 @@ def genome_chromosome(taxon_fasta_idx):
     chromosome = faidx.sort_values(by="Length", ascending=False).iloc[0, 0]
 
     return chromosome
+
+
+def get_out_genome(wildcards):
+    """Function to get the right ref genome for each fastbaps cluster"""
+
+    ref_genomes = pd.read_csv(
+        OUT_GENOME_TABLE,
+        sep="\t",
+    )
+
+    return ref_genomes.loc[
+        ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
+    ][0]

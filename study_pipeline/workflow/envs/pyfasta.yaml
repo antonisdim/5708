@@ -1,0 +1,4 @@
+channels:
+  - bioconda
+dependencies:
+  - pyfasta=0.5.2
