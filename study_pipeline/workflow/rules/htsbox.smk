@@ -23,7 +23,7 @@ rule consensus_fasta:
         "../envs/htsbox.yaml"
     shell:
         'sample=$"{wildcards.sample}";'
-        'if [[ "$sample" == *"SB27"* ]]; then'
+        'if [[ "$sample" == *"SB27"* ]] || [[ "$sample" == *"SRR"* ]] || [[ "$sample" == *"ERR"* ]]; then'
         "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> {output}) 2> {log};"
         "else "
         "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M {input.bam_file} 1> {output}) 2> {log};"
