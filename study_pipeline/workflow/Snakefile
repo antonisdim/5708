@@ -38,6 +38,7 @@ rule all:
     input:
         # "qc/fastqc_summary.tsv",
         # "assemblies.done",
+        "assemblies/assemblies_stats_ecoli.tsv",
         # "annotation_ecoli.done",
         # "panaroo_ecoli/pangenome_merged/pan_genome_reference.fa",
         # "panaroo_ecoli/pangenome_merged/core_gene_alignment.aln",

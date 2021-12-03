@@ -8,7 +8,7 @@ __license__ = "MIT"
 
 import pandas as pd
 
-from scripts.utilities import read_sample_list
+from scripts.utilities import read_sample_list, get_right_pathogen
 
 
 rule spades_assembly:
@@ -37,7 +37,6 @@ def get_assemblies(_):
     """Get the paths to the contigs"""
 
     samples = read_sample_list()[["Sample_Acc"]]
-
     inputs = []
 
     for key, sam in samples.iterrows():
@@ -56,3 +55,43 @@ rule get_assemblies:
         "Spades has finished performing the de novo assemblies."
     shell:
         "touch {output}"
+
+
+rule run_assembly_stats:
+    input:
+        assembly="assemblies/{accession}_scaffolds.fasta",
+    log:
+        "assemblies/{accession}_scaffolds_stats.log",
+    output:
+        assembly_stats=temp("assemblies/{accession}_scaffolds_stats.tsv"),
+    message:
+        "Calculating assembly stats for sample {wildcards.accession}."
+    params:
+        extra="-t",
+    threads: 1
+    wrapper:
+        "0.80.2/bio/assembly-stats"
+
+
+def get_assemblies_stats(wildcards):
+    """Get the paths to the contigs"""
+
+    samples_list = get_right_pathogen(wildcards, checkpoints)
+    inputs = []
+
+    for sample in samples_list:
+        assembly = f"assemblies/{sample}_scaffolds_stats.tsv"
+        inputs.append(assembly)
+
+    return inputs
+
+
+rule get_assemblies_stats:
+    input:
+        get_assemblies_stats,
+    output:
+        "assemblies/assemblies_stats_{pathogen}.tsv",
+    message:
+        "Assembly stats have been calculated for {wildcards.pathogen}."
+    shell:
+        "awk 'FNR>1 || NR==1' {input} > {output}"
