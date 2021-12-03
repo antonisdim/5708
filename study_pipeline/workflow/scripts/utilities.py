@@ -101,7 +101,7 @@ def get_ref_genome(wildcards):
 
     return ref_genomes.loc[
         ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
-    ][0]
+    ].to_list()[0]
 
 
 def genome_chromosome(taxon_fasta_idx):
