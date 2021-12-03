@@ -116,7 +116,7 @@ rule combine_gvcfs:
     conda:
         "../envs/gatk.yaml"
     wrapper:
-        "v0.80.1/bio/gatk/combinegvcfs"
+        "0.80.2/bio/gatk/combinegvcfs"
 
 
 rule genotype_gvcfs:
