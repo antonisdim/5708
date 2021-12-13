@@ -70,7 +70,7 @@ rule haplotype_caller:
         gvcf="gatk_{pathogen}/{sample}_ref_{accession}.g.vcf.gz",
         tbi="gatk_{pathogen}/{sample}_ref_{accession}.g.vcf.gz.tbi",
     message:
-        "Estimating the GVCF file for {wildcards.pathogen} sample {wildcards.sample}."
+        "Preparing the GVCF file for {wildcards.pathogen} sample {wildcards.sample}."
     conda:
         "../envs/gatk.yaml"
     threads: 1

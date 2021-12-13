@@ -94,4 +94,4 @@ rule get_assemblies_stats:
     message:
         "Assembly stats have been calculated for {wildcards.pathogen}."
     shell:
-        "awk 'FNR>1 || NR==1' {input} > {output}"
+        "awk 'FNR>1 || NR==1' {input} | sed 's/assemblies\///g' | sed 's/_scaffolds.fasta//g' > {output}"
