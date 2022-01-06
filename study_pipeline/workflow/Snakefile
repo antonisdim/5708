@@ -54,4 +54,5 @@ rule all:
         # "gatk_ecoli/ecoli_cluster_23_sfs.pdf",
         # "trees_ecoli/RAxML_bestTree.ecoli_cluster_23",
         "ariba_card_ecoli/ecoli_cluster_15_report.csv",
+        "abricate_card_ecoli/ecoli_cluster_15_report.tsv",
         # "clustering_campylobacter/summary_clusters_mlst_campylobacter_plus_contx.tsv",

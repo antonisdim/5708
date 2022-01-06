@@ -75,7 +75,7 @@ rule ariba_run:
         "--tmp_dir {params.tmpdir} --threads {threads} --force"
 
 
-def get_cluster_reports(wildcards):
+def get_ariba_cluster_reports(wildcards):
     """Get the samples belonging to a cluster to summarise the ariba reports"""
 
     samples_list = get_right_pathogen(wildcards, checkpoints)
@@ -91,14 +91,58 @@ def get_cluster_reports(wildcards):
 
 rule ariba_summary:
     input:
-        get_cluster_reports,
+        get_ariba_cluster_reports,
     output:
         "ariba_{db}_{pathogen}/{pathogen}_cluster_{cluster}_report.csv",
     message:
-        "Summarising reports for {wildcards.pathogen} cluster {wildcards.cluster} for {wildcards.db} db."
+        "Summarising the ariba reports for {wildcards.pathogen} cluster {wildcards.cluster} "
+        "for {wildcards.db} db."
     conda:
         "../envs/amr.yaml"
     params:
         out_prefix="ariba_{db}_{pathogen}/{pathogen}_cluster_{cluster}_report",
     shell:
-        "ariba summary {params.out_prefix} {input} --preset all"
+        "ariba summary {params.out_prefix} {input} --preset all && "
+        "sed -i 's/ariba_{wildcards.db}_{wildcards.pathogen}\///g' {output} && "
+        "sed -i 's/\/report.tsv//g' {output}"
+
+
+rule abricate_run:
+    input:
+        "assemblies/{sample}_scaffolds.fasta",
+    output:
+        "abricate_{db}_{pathogen}/{sample}_report.tsv",
+    message:
+        "Running abricate on sample {wildcards.sample} against the {wildcards.db} db."
+    conda:
+        "../envs/amr.yaml"
+    shell:
+        "abricate --db card --nopath {input} | sed 's/_scaffolds.fasta//g' > {output}"
+
+
+def get_abricate_cluster_reports(wildcards):
+    """Get the samples belonging to a cluster to summarise the ariba reports"""
+
+    samples_list = get_right_pathogen(wildcards, checkpoints)
+    input_paths = []
+
+    for sample in samples_list:
+        input_paths.append(
+            f"abricate_{wildcards.db}_{wildcards.pathogen}/{sample}_report.tsv"
+        )
+
+    return input_paths
+
+
+rule abricate_summary:
+    input:
+        get_abricate_cluster_reports,
+    output:
+        "abricate_{db}_{pathogen}/{pathogen}_cluster_{cluster}_report.tsv",
+    message:
+        "Summarising the abricate reports for {wildcards.pathogen} cluster {wildcards.cluster} "
+        "for {wildcards.db} db."
+    conda:
+        "../envs/amr.yaml"
+    shell:
+        "abricate --summary --nopath {input} | sed 's/_report.tsv//g' > {output}"
