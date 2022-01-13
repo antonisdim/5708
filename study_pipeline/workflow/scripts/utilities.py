@@ -51,6 +51,8 @@ def get_right_pathogen(wildcards, checkpoints):
 
     # check what cluster if necessary
     if hasattr(wildcards, "cluster"):
+        if wildcards.cluster == "all":
+            pass
         fastbaps = checkpoints.run_fastbaps.get(pathogen=wildcards.pathogen)
         clusters = pd.read_csv(
             fastbaps.output[0], sep=",", names=["Sample_Acc", "Cluster"]

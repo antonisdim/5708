@@ -56,3 +56,6 @@ rule all:
         "ariba_card_ecoli/ecoli_cluster_15_report.csv",
         "abricate_card_ecoli/ecoli_cluster_15_report.tsv",
         # "clustering_campylobacter/summary_clusters_mlst_campylobacter_plus_contx.tsv",
+        "seqs_ecoli/ecoli_cluster_all_seq_summary.tsv",
+        "gatk_ecoli/ecoli_cluster_all_SNP_filter_table.tsv",
+        "gatk_ecoli/ecoli_cluster_all_sfs.pdf",
