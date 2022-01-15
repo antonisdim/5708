@@ -50,9 +50,7 @@ def get_right_pathogen(wildcards, checkpoints):
             patho_samples = patho_samples[(patho_samples["Data_source"] == "SB27")]
 
     # check what cluster if necessary
-    if hasattr(wildcards, "cluster"):
-        if wildcards.cluster == "all":
-            pass
+    if hasattr(wildcards, "cluster") and (wildcards.cluster != "1000"):
         fastbaps = checkpoints.run_fastbaps.get(pathogen=wildcards.pathogen)
         clusters = pd.read_csv(
             fastbaps.output[0], sep=",", names=["Sample_Acc", "Cluster"]

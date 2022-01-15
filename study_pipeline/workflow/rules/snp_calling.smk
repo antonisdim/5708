@@ -77,7 +77,7 @@ rule haplotype_caller:
     shell:
         "(gatk HaplotypeCaller --input {input.bam_file} --output {output.gvcf} "
         "--reference {input.ref} --min-base-quality-score 30 "
-        "--output-mode EMIT_ALL_ACTIVE_SITES --sample-ploidy 1 -ERC GVCF "
+        "--output-mode EMIT_ALL_ACTIVE_SITES --sample-ploidy 2 -ERC GVCF "
         "--do-not-run-physical-phasing true) 2> {log}"
 
 
