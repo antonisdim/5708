@@ -8,8 +8,10 @@ __license__ = "MIT"
 
 import pandas as pd
 import csv
+import os
 
 SAMPLE_TABLE = "samples.tsv"
+CONT_SAMPLE_TABLE = "contaminated_samples.tsv"
 REF_GENOME_TABLE = "reference_genomes.tsv"
 OUT_GENOME_TABLE = "outgroup_genomes.tsv"
 
@@ -59,6 +61,18 @@ def get_right_pathogen(wildcards, checkpoints):
         patho_samples = patho_samples[
             patho_samples["Sample_Acc"].isin(cluster_samples["Sample_Acc"])
         ]
+
+        # todo fix that block - turn it into checkpoint output and include other species too
+        #  and work for non-clusters too maybe
+        if os.path.isfile(CONT_SAMPLE_TABLE):
+            contaminated_samples = pd.read_csv(
+                CONT_SAMPLE_TABLE,
+                sep="\t",
+                names=["Sample_Acc", "Species", "Data_source"],
+            )
+            patho_samples = patho_samples[
+                ~patho_samples["Sample_Acc"].isin(contaminated_samples["Sample_Acc"])
+            ]
 
     inputs_all = []
 

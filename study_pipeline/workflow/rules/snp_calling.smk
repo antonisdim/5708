@@ -115,6 +115,8 @@ rule combine_gvcfs:
         "Combining GVCF files for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
         "../envs/gatk.yaml"
+    resources:
+        mem_mb=435000,
     wrapper:
         "0.80.2/bio/gatk/combinegvcfs"
 
