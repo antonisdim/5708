@@ -6,7 +6,6 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-import pandas as pd
 
 from scripts.utilities import read_sample_list, get_right_pathogen
 
@@ -76,7 +75,7 @@ rule run_assembly_stats:
 def get_assemblies_stats(wildcards):
     """Get the paths to the contigs"""
 
-    samples_list = get_right_pathogen(wildcards, checkpoints)
+    samples_list = get_right_pathogen(wildcards, checkpoints, cont_check=False)
     inputs = []
 
     for sample in samples_list:

@@ -1,0 +1,8 @@
+Species	Cluster	ST	Strain	Accession	Paper
+ecoli	1000	unknown	cq9	GCF_003402955.1	PROVISIONAL
+ecoli	15	131	EC958	GCF_000285655.3	https://journals.asm.org/doi/full/10.1128/mSphere.00550-21
+ecoli	23	unknown	cq9	GCF_003402955.1	PROVISIONAL
+ecoli	19	10	Fec10	GCF_009497625.2	https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7984374/
+ecoli	13	73	ST73	GCF_900537035.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000255
+ecoli	17	69	CFSAN061770	GCF_002278115.2	https://www.sciencedirect.com/science/article/pii/S1567134818306312
+ecoli	12	95	SF-468	GCF_001280345.1	https://journals.asm.org/doi/full/10.1128/genomeA.01241-15
