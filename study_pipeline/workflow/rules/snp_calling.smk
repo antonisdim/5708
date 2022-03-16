@@ -6,8 +6,6 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-import os
-
 from scripts.utilities import get_right_pathogen, get_ref_genome, genome_chromosome
 
 
