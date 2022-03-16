@@ -137,38 +137,39 @@ rule genotype_gvcfs:
         "(gatk GenotypeGVCFs --reference {input.ref} --variant {input.gvcf} --output {output}) 2> {log}"
 
 
-rule select_snps:
+rule filter_variants:
     input:
         vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_joint_raw.vcf.gz",
         ref=get_ref_fasta,
     log:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_joint_raw.log",
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_filtered.log",
     output:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_joint_raw.vcf.gz",
-    message:
-        "Slecting only the SNP variants for {wildcards.pathogen} cluster {wildcards.cluster}."
-    conda:
-        "../envs/gatk.yaml"
-    shell:
-        "(gatk SelectVariants --reference {input.ref} --variant {input.vcf} "
-        "--output {output} --select-type-to-include SNP) 2> {log}"
-
-
-rule filter_variants:
-    input:
-        vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_joint_raw.vcf.gz",
-        ref=get_ref_fasta,
-    log:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.log",
-    output:
-        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.vcf.gz",
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_filtered.vcf.gz",
     message:
         "Filtering the VCF file for {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
         "../envs/gatk.yaml"
     shell:
         "(gatk VariantFiltration --reference {input.ref} --variant {input.vcf} --output {output} "
-        '--filter-name "Q_and_DP_filter" --filter-expression "QUAL >= 30.0 && DP >= 5") 2> {log}'
+        '--filter-name "Q_and_DP_filter" --filter-expression "QUAL >= 30.0 && DP >= 5" '
+        '--genotype-filter-expression "isHet == 1" --genotype-filter-name "isHetFilter") 2> {log}'
+
+
+rule select_snps:
+    input:
+        vcf="gatk_{pathogen}/{pathogen}_cluster_{cluster}_var_filtered.vcf.gz",
+        ref=get_ref_fasta,
+    log:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.log",
+    output:
+        "gatk_{pathogen}/{pathogen}_cluster_{cluster}_SNP_filtered.vcf.gz",
+    message:
+        "Slecting only the SNP variants for {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/gatk.yaml"
+    shell:
+        "(gatk SelectVariants --reference {input.ref} --variant {input.vcf} "
+        "--output {output} --select-type-to-include SNP --set-filtered-gt-to-nocall) 2> {log}"
 
 
 rule snp_table:
