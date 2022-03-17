@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+  - defaults
+  - r
+  - bioconda
+dependencies:
+  - gubbins=3.2.0

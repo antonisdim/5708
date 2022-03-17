@@ -47,7 +47,7 @@ rule get_chromosome_aln:
         fastas=get_cluster_fasta_consensus,
         ref_index=get_ref_idx,
     output:
-        "trees_{pathogen}/{pathogen}_cluster_{cluster}_chromosome_aln.fasta",
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.fasta",
     message:
         "Getting the chromosome alignment of {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
@@ -56,11 +56,42 @@ rule get_chromosome_aln:
         "../scripts/get_chromosome_aln.py"
 
 
+rule remove_recombination:
+    input:
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.fasta"
+    log:
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_gubbins.log"
+    output:
+        base_embl="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.branch_base_reconstruction.embl",
+        rec_gff="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.recombination_predictions.gff",
+        rec_rmbl="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.recombination_predictions.embl",
+        snp_dist="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.summary_of_snp_distribution.vcf",
+        branch_stats="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.per_branch_statistics.csv",
+        tree_lab_final="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.node_labelled.final_tree.tre",
+        log="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.log",
+        tree_final="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.final_tree.tre",
+        poly_phylip="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.filtered_polymorphic_sites.phylip",
+        poly_fasta="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.filtered_polymorphic_sites.fasta",
+        rec_masked_fasta="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec.fasta"
+    message:
+        "Running Gubbins on {wildcards.pathogen} cluster {wildcards.cluster}."
+    conda:
+        "../envs/gubbins.yaml"
+    threads: workflow.cores
+    params:
+        basename="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln",
+        out=lambda wildcards: get_out_genome(wildcards)
+    shell:
+        "(run_gubbins.py --prefix {params.basename} --tree-builder raxml "
+        "--filter-percentage 70.0 --outgroup {params.out} --threads {threads} {input} && "
+        "mask_gubbins_aln.py --aln {input} --gff {output.rec_gff} --out {output.rec_masked_fasta}) 2> {log}"
+
+
 rule get_chromosome_snps_aln:
     input:
-        "trees_{pathogen}/{pathogen}_cluster_{cluster}_chromosome_aln.fasta",
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec.fasta",
     output:
-        "trees_{pathogen}/{pathogen}_cluster_{cluster}_chromosome_aln_snps.fasta",
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec_snps.fasta",
     message:
         "Getting only the polymorphic positions from the chromosome alignment of "
         "{wildcards.pathogen} cluster {wildcards.cluster}."
@@ -72,7 +103,7 @@ rule get_chromosome_snps_aln:
 
 rule run_raxml_gtr_gamma:
     input:
-        "trees_{pathogen}/{pathogen}_cluster_{cluster}_chromosome_aln_snps.fasta",
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec_snps.fasta",
     log:
         "trees_{pathogen}/RAxML_{pathogen}_cluster_{cluster}.log",
     output:

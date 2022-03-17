@@ -2,3 +2,5 @@ channels:
   - conda-forge
 dependencies:
   - biopython=1.79
+  - numpy=1.19.2
+  - pandas=1.0.3
