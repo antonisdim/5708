@@ -1,7 +1,7 @@
 Species	Cluster	ST	Strain	Accession	Paper
 ecoli	1000	131	EC958	GCF_000285655.3	PROVISIONAL
 ecoli	21	428_related	APEC_O78	GCF_000332755.1	https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-3289-7#Sec2
-ecoli	23	10	BW2952	GCF_000022345.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
+ecoli	23	1434	311962	GCA_014426305.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
 ecoli	16	372	upec-239	GCF_000778275.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
 ecoli	19	38	blood-10-180	GCF_000779975.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
 ecoli	14	372	upec-239	GCF_000778275.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
