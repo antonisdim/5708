@@ -1,5 +1,5 @@
 # Title     : run_fastbaps
-# Objective : Cluster genomes with fastbaps
+# Objective : Run site frequency spectrum
 # Created by: Evangelos A. Dimopoulos"
 # Created on: 01/12/2021
 
