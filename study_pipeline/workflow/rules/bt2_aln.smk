@@ -6,7 +6,7 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-from scripts.utilities import get_right_pathogen, get_ref_genome
+from scripts.utilities import get_read_file
 
 MIN_FRAG_LEN = 0
 MAX_FRAG_LEN = 1000
@@ -50,10 +50,22 @@ rule bowtie_index_accession:
         "bowtie2-build --large-index --threads {threads} {input} {params.basename} &> {log}"
 
 
+def get_r1(wildcards):
+    """Get the relative path to the R1 read file"""
+
+    return get_read_file(wildcards, "1")
+
+
+def get_r2(wildcards):
+    """Get the relative path to the R2 read file"""
+
+    return get_read_file(wildcards, "2")
+
+
 rule bowtie_align_accession_paired_end:
     input:
-        fastq_r1="adRm/{sample}_R1_adRm.fastq.gz",
-        fastq_r2="adRm/{sample}_R2_adRm.fastq.gz",
+        fastq_r1=get_r1,
+        fastq_r2=get_r2,
         db_idx="refs/{pathogen}/{accession}.1.bt2l",
     log:
         "bt2_alignments_{pathogen}/{sample}_ref_{accession}.log",

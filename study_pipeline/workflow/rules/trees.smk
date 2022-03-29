@@ -42,6 +42,7 @@ def get_ref_idx(wildcards):
     return f"refs/{wildcards.pathogen}/{ref}.fasta.gz.fai"
 
 
+# todo inherit this rule
 rule get_chromosome_aln:
     input:
         fastas=get_cluster_fasta_consensus,
@@ -56,11 +57,12 @@ rule get_chromosome_aln:
         "../scripts/get_chromosome_aln.py"
 
 
+# todo inherit this rule
 rule remove_recombination:
     input:
-        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.fasta"
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.fasta",
     log:
-        "msa_{pathogen}/{pathogen}_cluster_{cluster}_gubbins.log"
+        "msa_{pathogen}/{pathogen}_cluster_{cluster}_gubbins.log",
     output:
         base_embl="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.branch_base_reconstruction.embl",
         rec_gff="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.recombination_predictions.gff",
@@ -72,7 +74,7 @@ rule remove_recombination:
         tree_final="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.final_tree.tre",
         poly_phylip="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.filtered_polymorphic_sites.phylip",
         poly_fasta="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln.filtered_polymorphic_sites.fasta",
-        rec_masked_fasta="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec.fasta"
+        rec_masked_fasta="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec.fasta",
     message:
         "Running Gubbins on {wildcards.pathogen} cluster {wildcards.cluster}."
     conda:
@@ -80,7 +82,7 @@ rule remove_recombination:
     threads: 1
     params:
         basename="msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln",
-        out=lambda wildcards: get_out_genome(wildcards)
+        out=lambda wildcards: get_out_genome(wildcards),
     shell:
         "(run_gubbins.py --prefix {params.basename} --tree-builder raxml "
         "--filter-percentage 70.0 --outgroup {params.out} --threads {threads} {input} && "

@@ -12,6 +12,7 @@ import os
 
 SAMPLE_TABLE = "aux_files/samples.tsv"
 CONT_SAMPLE_TABLE = "aux_files/excluded_samples.tsv"
+LINEAGE_CONTX_TABLE = "aux_files/lineage_context_samples.tsv"
 REF_GENOME_TABLE = "aux_files/reference_genomes.tsv"
 OUT_GENOME_TABLE = "aux_files/outgroup_genomes.tsv"
 
@@ -23,6 +24,19 @@ def read_sample_list():
         SAMPLE_TABLE,
         sep="\t",
         names=["Sample_Acc", "Species", "Data_source"],
+    )
+
+    return samples
+
+
+def read_lineage_contx_list():
+    """Read the user lineage context sample table"""
+
+    samples = pd.read_csv(
+        LINEAGE_CONTX_TABLE,
+        sep="\t",
+        names=["Sample_Acc", "Species", "Data_source"],
+        dtype=object,
     )
 
     return samples
@@ -74,6 +88,14 @@ def get_right_pathogen(wildcards, checkpoints, cont_check=True):
         patho_samples = patho_samples[
             patho_samples["Sample_Acc"].isin(cluster_samples["Sample_Acc"])
         ]
+
+    # check if I need to add global context to a specific lineage
+    if hasattr(wildcards, "pop"):
+        lineage_context = read_lineage_contx_list()
+        lineage_context = lineage_context[
+            (lineage_context["Data_source"] == wildcards.cluster)
+        ]
+        patho_samples = pd.concat([patho_samples, lineage_context], ignore_index=True)
 
     # exclude any contaminated samples
     if cont_check:
@@ -151,3 +173,16 @@ def get_out_genome(wildcards):
     return ref_genomes.loc[
         ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
     ].to_list()[0]
+
+
+def get_read_file(wildcards, mate):
+    """Get the relative path to the R1 read file"""
+
+    sb27_samples = read_sample_list()
+
+    if wildcards.sample in sb27_samples["Sample_Acc"].values:
+        sam_path = f"adRm/{wildcards.sample}_R{mate}_adRm.fastq.gz"
+    else:
+        sam_path = f"sra_context_ecoli/{wildcards.sample}_R{mate}_adRm.fastq.gz"
+
+    return sam_path
