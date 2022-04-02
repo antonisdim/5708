@@ -90,7 +90,7 @@ def get_right_pathogen(wildcards, checkpoints, cont_check=True):
         ]
 
     # check if I need to add global context to a specific lineage
-    if hasattr(wildcards, "pop"):
+    if hasattr(wildcards, "pop") and (wildcards.population == "population"):
         lineage_context = read_lineage_contx_list()
         lineage_context = lineage_context[
             (lineage_context["Data_source"] == wildcards.cluster)
