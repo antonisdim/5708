@@ -77,7 +77,7 @@ rule remove_recombination:
         "Running Gubbins on {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
     conda:
         "../envs/gubbins.yaml"
-    threads: workflow.cores * 0.25
+    threads: workflow.cores * 0.5
     params:
         basename="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln",
         out=lambda wildcards: get_out_genome(wildcards),
