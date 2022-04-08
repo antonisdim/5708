@@ -55,7 +55,7 @@ rule all:
         #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         # ),
         # "trees_ecoli/ecoli_population_21_iq.treefile",
-        "aux_files/r_github.done",
+        "aux_files/github_r.done",
         # "msa_ecoli/ecoli_population_21_chr_aln.fasta",
         # "ariba_card_ecoli/ecoli_cluster_15_report.csv",
         # "abricate_card_ecoli/ecoli_cluster_15_report.tsv",

@@ -9,14 +9,14 @@ __license__ = "MIT"
 from scripts.utilities import get_right_pathogen, get_ref_genome, genome_chromosome
 
 
-rule r_github:
+rule github_r:
     log:
-        "aux_files/r_github.log",
+        "aux_files/github_r.log",
     output:
-        "aux_files/r_github.done",
+        "aux_files/github_r.done",
     message:
         "Installing R packages that are not hosted on Conda."
     conda:
         "../envs/rgithub.yaml"
     shell:
-        "(Rscript scripts/r_github.R) &> {log}"
+        "(Rscript scripts/github_.R) &> {log}"
