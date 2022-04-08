@@ -19,4 +19,4 @@ rule r_github:
     conda:
         "../envs/rgithub.yaml"
     shell:
-        "(Rscript scripts/r_github.R &> {log}"
+        "(Rscript scripts/r_github.R) &> {log}"

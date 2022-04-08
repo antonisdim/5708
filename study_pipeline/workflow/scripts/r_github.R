@@ -15,14 +15,14 @@ library(devtools)
 github_libs <- function(outfile) {
 
   # check if treeWAS has already been installed
-  if (!require('treeWAS', character.only = TRUE)) {
+  if ("treeWAS" %in% rownames(installed.packages())) {
     print("Package treeWAS has already been installed")
    } else {
     install_github("caitiecollins/treeWAS", build_vignettes = TRUE)
    }
 
    # check if hierfstat has already been installed
-  if (!require('hierfstat', character.only = TRUE)) {
+  if ("hierfstat" %in% rownames(installed.packages())) {
     print("Package hierfstat has already been installed")
    } else {
     install_github("jgx65/hierfstat")
