@@ -10,7 +10,7 @@ msa <- args[1]
 cluster_file <- args[2]
 threads <- as.integer(args[3])
 
-#load libs
+# load libs
 library(fastbaps)
 library(ape)
 

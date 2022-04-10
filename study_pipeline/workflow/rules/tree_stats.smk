@@ -19,7 +19,7 @@ rule github_r:
     conda:
         "../envs/rgithub.yaml"
     shell:
-        "(Rscript scripts/github_r.R) &> {log}"
+        "(Rscript scripts/github_r.R {output}) &> {log}"
 
 
 rule treewas:
