@@ -41,3 +41,40 @@ rule treewas:
     shell:
         "(Rscript scripts/treewas.R {input.tree} {params.out} {input.aln} {input.pop_meta} "
         "{output.plot} {output.table}) &> {log}"
+
+
+# todo move that to the original rule in trees.smk - here only for convenience so that it doesn't trigger the re-execution of trees
+rule get_chromosome_snps_nrec_aln:
+    input:
+        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln.fasta",
+    output:
+        temp("msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta"),
+    message:
+        "Getting only the polymorphic positions from the chromosome alignment of "
+        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    conda:
+        "../envs/snpsites.yaml"
+    shell:
+        "(snp-sites -m -o {output} {input})"
+
+
+rule fst:
+    input:
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
+        aln_rec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta",
+        aln_nrec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+        pop_meta="aux_files/{pathogen}_all_meta.tsv",
+    log:
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_fst.log",
+    output:
+        table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_fst.tsv",
+    message:
+        "Calucluate Nei's and Weir and Cockerham's Fst for {wildcards.pathogen} {wildcards.population} "
+        "{wildcards.cluster}, before and after removing recombinant regions."
+    conda:
+        "../envs/rgithub.yaml"
+    params:
+        out=lambda wildcards: get_out_genome(wildcards),
+    shell:
+        "(Rscript scripts/fst.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
+        "{input.pop_meta} {output.table}) &> {log}"

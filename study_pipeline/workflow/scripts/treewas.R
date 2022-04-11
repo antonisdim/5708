@@ -26,8 +26,8 @@ treewas <- function(tree_file, outgroup, aln_file, pop_metadata, plot_file, out_
     tree_r_no_out <- read_tree(tree_file, outgroup)
 
     # read aln data from file:
-    genid_obj <- read_aln(aln_file, tree_r_no_out)
-    mat <- genid_obj@tab
+    genind_obj <- read_aln(aln_file, tree_r_no_out)
+    mat <- genind_obj@tab
 
     # read file with population metadata
     pop_meta <- population_host_metadata(pop_metadata)

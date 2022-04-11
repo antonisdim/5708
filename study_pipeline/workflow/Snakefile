@@ -56,7 +56,14 @@ rule all:
         # ),
         # "trees_ecoli/ecoli_population_21_iq.treefile",
         # "aux_files/github_r.done",
-        "trees_stats_ecoli/ecoli_cluster_8_treewas.tsv",
+        # expand(
+        #     "trees_stats_ecoli/ecoli_cluster_{num}_treewas.tsv",
+        #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        # ),
+        expand(
+            "trees_stats_ecoli/ecoli_cluster_{num}_fst.tsv",
+            num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        ),
         # "msa_ecoli/ecoli_population_21_chr_aln.fasta",
         # "ariba_card_ecoli/ecoli_cluster_15_report.csv",
         # "abricate_card_ecoli/ecoli_cluster_15_report.tsv",
