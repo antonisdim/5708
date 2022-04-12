@@ -1,4 +1,4 @@
-# Title     : treeWAS
+# Title     : fst
 # Objective : Run Nei's (1982) and Weir and Cockerham's Fst
 # Created by: Evangelos A. Dimopoulos"
 # Created on: 08/04/2022
@@ -14,6 +14,7 @@ pop_metadata <- args[5]
 out_table <- args[6]
 
 # load libs
+library(ade4)
 library(adegenet)
 library(ape)
 library(hierfstat)

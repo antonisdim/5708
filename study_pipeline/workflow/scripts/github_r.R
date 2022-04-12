@@ -28,6 +28,12 @@ github_libs <- function(outfile) {
     install_github("jgx65/hierfstat")
    }
 
+  if ("poppr" %in% rownames(installed.packages())) {
+    print("Package poppr has already been installed")
+   } else {
+    install.packages('poppr')
+   }
+
   # create empty file when done
   file.create(outfile)
 }
