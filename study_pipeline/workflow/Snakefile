@@ -61,7 +61,7 @@ rule all:
         #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         # ),
         expand(
-            "trees_stats_ecoli/ecoli_cluster_{num}_heritability.tsv",
+            "trees_stats_ecoli/ecoli_cluster_{num}_assoc_idx.tsv",
             num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         ),
         # "msa_ecoli/ecoli_population_21_chr_aln.fasta",

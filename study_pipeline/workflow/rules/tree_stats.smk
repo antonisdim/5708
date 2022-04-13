@@ -91,7 +91,7 @@ rule heritability:
     output:
         table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_heritability.tsv",
     message:
-        "Calucluate the broad sense heritability (H^2), based on an amova, "
+        "Calucluate the broad sense heritability (H^2) from an amova, "
         "for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}, "
         "before and after removing recombinant regions."
     conda:
@@ -101,3 +101,25 @@ rule heritability:
     shell:
         "(Rscript scripts/heritability.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
         "{input.pop_meta} {output.table}) &> {log}"
+
+
+rule association_index:
+    input:
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
+        pop_meta="aux_files/{pathogen}_all_meta.tsv",
+    log:
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_assoc_idx.log",
+    output:
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_assoc_idx.tsv",
+    message:
+        "Calucluate the phylogeny and trait (host) association index, "
+        "for {wildcards.pathogen} {wildcards.population} {wildcards.cluster} "
+        "for {params.boot} bootstraps, for the clonal tree only."
+    conda:
+        "../envs/biopython.yaml"
+    params:
+        out=lambda wildcards: get_out_genome(wildcards),
+        boot=1000,
+    shell:
+        "(python scripts/association_index.py --tree {input.tree} --boot {params.boot} "
+        "--meta {input.pop_meta} --outgroup {params.out} --outfile {output}) 2> {log}"
