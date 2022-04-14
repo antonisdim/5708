@@ -6,7 +6,7 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-from scripts.utilities import get_out_genome
+from scripts.utilities import get_out_genome, get_clusters_to_run
 
 
 rule github_r:
@@ -123,3 +123,75 @@ rule association_index:
     shell:
         "(python scripts/association_index.py --tree {input.tree} --boot {params.boot} "
         "--meta {input.pop_meta} --outgroup {params.out} --outfile {output}) 2> {log}"
+
+
+def get_cluster_treewas(wildcards):
+    """Get the fst files belonging for the clusters that have been run so far"""
+
+    input_paths = []
+    cluster_list = get_clusters_to_run()
+
+    for cluster in cluster_list:
+        input_paths.append(
+            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_treewas.tsv"
+        )
+
+    return input_paths
+
+
+def get_cluster_fst(wildcards):
+    """Get the fst files belonging for the clusters that have been run so far"""
+
+    input_paths = []
+    cluster_list = get_clusters_to_run()
+
+    for cluster in cluster_list:
+        input_paths.append(
+            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_fst.tsv"
+        )
+
+    return input_paths
+
+
+def get_cluster_heritability(wildcards):
+    """Get the fst files belonging for the clusters that have been run so far"""
+
+    input_paths = []
+    cluster_list = get_clusters_to_run()
+
+    for cluster in cluster_list:
+        input_paths.append(
+            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_heritability.tsv"
+        )
+
+    return input_paths
+
+
+def get_cluster_assoc_idx(wildcards):
+    """Get the fst files belonging for the clusters that have been run so far"""
+
+    input_paths = []
+    cluster_list = get_clusters_to_run()
+
+    for cluster in cluster_list:
+        input_paths.append(
+            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_assoc_idx.tsv"
+        )
+
+    return input_paths
+
+
+rule summarise_tree_stats:
+    input:
+        fst_files=get_cluster_fst,
+        herit_files=get_cluster_heritability,
+        treewas_files=get_cluster_treewas,
+        assoc_idx_files=get_cluster_assoc_idx,
+    output:
+        "trees_stats_{pathogen}/{pathogen}_{population}_tree_stats.tsv",
+    message:
+        "Summarising the tree stats for {wildcards.pathogen} {wildcards.population}(s), using host as a trait."
+    conda:
+        "../envs/pandas.yaml"
+    script:
+        "../scripts/summarise_tree_stats.py"

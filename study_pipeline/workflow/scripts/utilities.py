@@ -186,3 +186,18 @@ def get_read_file(wildcards, mate):
         sam_path = f"sra_context_ecoli/{wildcards.sample}_R{mate}_adRm.fastq.gz"
 
     return sam_path
+
+
+def get_clusters_to_run():
+    """Get the clusters that summary stats will be run on"""
+
+    ref_genomes = pd.read_csv(
+        REF_GENOME_TABLE,
+        sep="\t",
+    )
+
+    clusters = ref_genomes["Cluster"].unique().tolist()
+    clusters.pop(0)
+    clusters.pop(-1) #todo remove that
+
+    return clusters
