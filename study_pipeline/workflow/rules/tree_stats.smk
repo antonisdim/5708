@@ -195,3 +195,36 @@ rule summarise_tree_stats:
         "../envs/pandas.yaml"
     script:
         "../scripts/summarise_tree_stats.py"
+
+
+rule  pairsnp:
+    input:
+        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+    output:
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
+    message:
+        "Running pairsnp for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    conda:
+        "../envs/pairsnp.yaml"
+    shell:
+        "pairsnp -i {input} > {output}"
+
+
+rule transition_analysis:
+    input:
+        snps="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
+        pop_meta="aux_files/{pathogen}_all_meta.tsv",
+    output:
+        all_hosts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_total_host_links.tsv",
+        boot_hosts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_boot_host_links.tsv"
+    message:
+        "Inferring host transition links for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    params:
+        out=lambda wildcards: get_out_genome(wildcards),
+    conda:
+        "../envs/rgithub.yaml"
+    shell:
+        "(Rscript scripts/transition_analysis.R {input.snps} {input.tree} {params.out} {input.pop_meta} "
+        "{output.all_hosts} {output.boot_hosts})"
+
