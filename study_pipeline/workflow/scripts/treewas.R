@@ -34,6 +34,7 @@ treewas <- function(tree_file, outgroup, aln_file, pop_metadata, plot_file, out_
 
     # load traits
     pop_trait <- pop_meta[pop_meta$sample %in% tree_r_no_out$tip.label,]
+    pop_trait$Num_Trait <- ifelse(pop_trait$Trait == "Human", 1, 0)
     phen_num <- setNames(pop_trait$Num_Trait, pop_trait$sample)
 
     # run treeWas
