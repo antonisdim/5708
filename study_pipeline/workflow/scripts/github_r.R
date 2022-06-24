@@ -31,7 +31,7 @@ github_libs <- function(outfile) {
   if ("poppr" %in% rownames(installed.packages())) {
     print("Package poppr has already been installed")
    } else {
-    install.packages('poppr')
+    install.packages('poppr', repos = "http://cran.us.r-project.org")
    }
 
   # create empty file when done

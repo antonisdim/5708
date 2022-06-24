@@ -209,12 +209,12 @@ rule  pairsnp:
     shell:
         "pairsnp -i {input} > {output}"
 
-
+#todo change the pop meta in a wild card combo that fits both clusters and pops or combine them into a single file
 rule transition_analysis:
     input:
         snps="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
-        pop_meta="aux_files/{pathogen}_all_meta.tsv",
+        pop_meta="aux_files/{pathogen}_big_lineages_meta.tsv",
     output:
         all_hosts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_total_host_links.tsv",
         boot_hosts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_boot_host_links.tsv"

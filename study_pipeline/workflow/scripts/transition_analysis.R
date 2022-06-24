@@ -10,8 +10,8 @@ snp_file <- args[1]
 treefile <- args[2]
 outgroup <- args[3]
 pop_meta <- args[4]
-out_table <- args[6]
-most_common_table <- args[7]
+all_out_table <- args[5]
+most_common_table <- args[6]
 
 # load libs
 library(igraph)
@@ -55,11 +55,11 @@ snp_dist_net <-
     vcom <- data.frame(as_ids(V(xg)), V(xg)$community)
     colnames(vcom) <- c("sample", "network_id")
 
-    netowork_phylo <- vcom[-grep("Node", vcom$sample),]
+    network_phylo <- vcom[-grep("Node", vcom$sample),]
 
     # add host trait
     sample_meta_df <-
-      population_host_metadata("ecoli_population_21_meta.tsv")
+      population_host_metadata(pop_meta)
 
     # match sample and host
     ecoli_pwsnps_decon$Taxon1_host <-
@@ -75,9 +75,9 @@ snp_dist_net <-
 
     # match sample and network_id
     ecoli_pwsnps_decon$Taxon1_network <-
-      netowork_phylo$network_id[match(ecoli_pwsnps_decon$Taxon1, netowork_phylo$sample)]
+      network_phylo$network_id[match(ecoli_pwsnps_decon$Taxon1, network_phylo$sample)]
     ecoli_pwsnps_decon$Taxon2_network <-
-      netowork_phylo$network_id[match(ecoli_pwsnps_decon$Taxon2, netowork_phylo$sample)]
+      network_phylo$network_id[match(ecoli_pwsnps_decon$Taxon2, network_phylo$sample)]
 
     # create new df with columns for area_match and host_match to help with separating and filtering data for plots
     ecoli_pwsnps_decon_filtered <- ecoli_pwsnps_decon %>%
@@ -130,19 +130,18 @@ transition_analysis <-
            treefile,
            outgroup,
            pop_meta,
-           out_table,
-           most_common_table)
+           all_out_table,
+           most_common_table) {
 
     tree_obj <- read_tree(treefile, outgroup)
-
-    snp_dist_net(snp_file, tree_obj, outgroup, pop_meta, out_plot, out_table)
+    snp_dist_net(snp_file, tree_obj, outgroup, pop_meta, all_out_table)
 
     sample_meta_df <- population_host_metadata(pop_meta)
     host_counts <- sample_meta_df %>% count(Trait, sort = TRUE) %>% arrange(n)
     subsample_num <- host_counts[2, c('n')]
 
     # create a directory to store the temporary host link count tables
-    temp_dir <- paste(dirname(out_table), "/iter_tables_", sub('\\_pairsnp.tsv$', '', basename(snp_dist)), sep = "")
+    temp_dir <- paste(dirname(all_out_table), "/iter_tables_", sub('\\_pairsnp.tsv$', '', basename(snp_dist)), sep = "")
 
     dir.create(temp_dir)
 
@@ -156,7 +155,6 @@ transition_analysis <-
         iter,
         ".tsv",
         sep = "")
-      mini <- TRUE
 
       subsample_list <- list()
 
@@ -195,9 +193,7 @@ transition_analysis <-
                    subset_tree,
                    outgroup,
                    pop_meta,
-                   out_plot_iter,
-                   out_table_iter,
-                   mini)
+                   out_table_iter)
 
     }
 
@@ -222,10 +218,11 @@ transition_analysis <-
       row.names = FALSE,
       quote = FALSE,
       sep = '\t'
+    )
 
     unlink(temp_dir, recursive=TRUE)
 
-)
+  }
 
 # run the install function
-transition_analysis(snp_file, treefile, outgroup, pop_meta, out_table, most_common_table)
+transition_analysis(snp_file, treefile, outgroup, pop_meta, all_out_table, most_common_table)
