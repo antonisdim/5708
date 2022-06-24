@@ -1,7 +1,7 @@
-# Title     : fst
-# Objective : Run Nei's (1982) and Weir and Cockerham's Fst
+# Title     : transition analysis
+# Objective : Run host transition (switch) analysis
 # Created by: Evangelos A. Dimopoulos"
-# Created on: 08/04/2022
+# Created on: 23/06/2022
 
 
 # allow for command line args
