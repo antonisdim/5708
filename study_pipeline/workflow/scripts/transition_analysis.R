@@ -12,12 +12,15 @@ outgroup <- args[3]
 pop_meta <- args[4]
 all_out_table <- args[5]
 most_common_table <- args[6]
+root_state_table <- args[7]
 
 # load libs
 library(igraph)
 library(ape)
 library(dplyr)
 library(tidygraph)
+library(phytools)
+library(tibble)
 
 # read the utility functions
 source("scripts/utilities.R")
@@ -131,7 +134,8 @@ transition_analysis <-
            outgroup,
            pop_meta,
            all_out_table,
-           most_common_table) {
+           most_common_table,
+           root_state_table) {
 
     tree_obj <- read_tree(treefile, outgroup)
     snp_dist_net(snp_file, tree_obj, outgroup, pop_meta, all_out_table)
@@ -139,6 +143,8 @@ transition_analysis <-
     sample_meta_df <- population_host_metadata(pop_meta)
     host_counts <- sample_meta_df %>% count(Trait, sort = TRUE) %>% arrange(n)
     subsample_num <- host_counts[2, c('n')]
+    mean_state_time <- data.frame(matrix(ncol = nrow(sample_meta_df %>% count(Trait, sort = TRUE)) + 1, nrow = 0))
+    total_state_changes <- c()
 
     # create a directory to store the temporary host link count tables
     temp_dir <- paste(dirname(all_out_table), "/iter_tables_", sub('\\_pairsnp.tsv$', '', basename(snp_dist)), sep = "")
@@ -195,8 +201,19 @@ transition_analysis <-
                    pop_meta,
                    out_table_iter)
 
+
+      char <- unlist(as.list(deframe(subsample_df[, c("sample", "Trait")])))
+      char <- char[names(char) != "SRR10270781"]
+
+      stochastic_ace_tree <- make.simmap(subset_tree, char, model = "ER")
+      ace_tree_sum <- describe.simmap(stochastic_ace_tree, plot = FALSE)
+      total_state_changes <- c(total_state_changes, ace_tree_sum$N)
+
+      mean_state_time[nrow(mean_state_time) + 1,] <- ace_tree_sum[["times"]]["prop",]
+
     }
 
+    # do the summary for the most common host links
     table_names <- dir(temp_dir, pattern = "*.tsv", full.names = TRUE)
 
     most_common_link <- c()
@@ -222,7 +239,19 @@ transition_analysis <-
 
     unlink(temp_dir, recursive=TRUE)
 
+    # summarise the ancestral state reconstruction
+    mean_state_time <- colMeans(setNames(mean_state_time, colnames(ace_tree_sum[["times"]])))
+    mean_state_time$Avg_state_changes <- mean(total_state_changes)
+
+    write.table(
+      mean_state_time,
+      file = root_state_table,
+      row.names = FALSE,
+      quote = FALSE,
+      sep = '\t'
+    )
+
   }
 
 # run the install function
-transition_analysis(snp_file, treefile, outgroup, pop_meta, all_out_table, most_common_table)
+transition_analysis(snp_file, treefile, outgroup, pop_meta, all_out_table, most_common_table, root_state_table)
