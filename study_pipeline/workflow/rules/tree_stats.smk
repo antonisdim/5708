@@ -215,10 +215,13 @@ rule transition_analysis:
         snps="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
         pop_meta="aux_files/{pathogen}_big_lineages_meta.tsv",
+    log:
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_transition_analysis.log"
     output:
         all_hosts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_total_host_links.tsv",
         boot_hosts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_boot_host_links.tsv",
-        root_state="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_ace_summary.tsv"
+        anc_states="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_ace_summary.tsv",
+        anc_counts="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_ace_tr_summary.tsv"
     message:
         "Inferring host transition links for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
     params:
@@ -227,5 +230,5 @@ rule transition_analysis:
         "../envs/rgithub.yaml"
     shell:
         "(Rscript scripts/transition_analysis.R {input.snps} {input.tree} {params.out} {input.pop_meta} "
-        "{output.all_hosts} {output.boot_hosts} {output.root_state})"
+        "{output.all_hosts} {output.boot_hosts} {output.anc_states} {output.anc_counts}) &> {log}"
 
