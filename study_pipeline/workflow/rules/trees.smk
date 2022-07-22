@@ -13,6 +13,7 @@ from scripts.utilities import (
     get_right_pathogen,
     get_ref_genome,
     get_out_genome,
+    get_ref_idx,
 )
 
 
@@ -32,14 +33,6 @@ def get_cluster_fasta_consensus(wildcards):
         input_paths.append(f"seqs_{wildcards.pathogen}/{sample}_ref_{ref}.fasta")
 
     return input_paths
-
-
-def get_ref_idx(wildcards):
-    """Get the correct fasta index"""
-
-    ref = get_ref_genome(wildcards)
-
-    return f"refs/{wildcards.pathogen}/{ref}.fasta.gz.fai"
 
 
 rule get_chromosome_aln:

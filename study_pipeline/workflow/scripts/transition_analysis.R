@@ -278,6 +278,6 @@ transition_analysis <-
     )
   }
 
-# run the install function
+# run the function
 transition_analysis(snp_file, treefile, outgroup, pop_meta, all_out_table, most_common_table, state_sum_table,
                     state_tr_table)

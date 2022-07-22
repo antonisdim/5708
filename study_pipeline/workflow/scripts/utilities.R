@@ -4,6 +4,14 @@
 # Created on: 10/04/2022
 
 
+root_tree <- function(tree_file, outgroup) {
+    # read tree
+    tree <- read.tree(file = tree_file)
+    tree_r <- root(tree, outgroup = outgroup, edgelabel = TRUE)
+    return(tree_r)
+}
+
+
 read_tree <- function(tree_file, outgroup) {
     # read tree
     tree <- read.tree(file = tree_file)

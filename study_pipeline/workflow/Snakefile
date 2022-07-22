@@ -34,6 +34,7 @@ if os.path.isfile(OUT_GENOME_TABLE):
 
     include: "rules/outgroup.smk"
     include: "rules/tree_stats.smk"
+    include: "rules/muttui.smk"
 
 
 rule all:
@@ -61,7 +62,8 @@ rule all:
         #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         # ),
         # "trees_stats_ecoli/ecoli_cluster_tree_stats.tsv",
-        "trees_stats_ecoli/ecoli_population_21_total_host_links.tsv"
+        # "trees_stats_ecoli/ecoli_population_21_total_host_links.tsv",
+        "muttui_ecoli/ecoli_cluster_21/all_included_mutations.csv"
         # "msa_ecoli/ecoli_population_21_chr_aln.fasta",
         # "ariba_card_ecoli/ecoli_cluster_15_report.csv",
         # "abricate_card_ecoli/ecoli_cluster_15_report.tsv",

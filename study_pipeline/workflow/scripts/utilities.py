@@ -198,6 +198,14 @@ def get_clusters_to_run():
 
     clusters = ref_genomes["Cluster"].unique().tolist()
     clusters.pop(0)
-    clusters.pop(-1) #todo remove that
+    clusters.pop(-1)  # todo remove that
 
     return clusters
+
+
+def get_ref_idx(wildcards):
+    """Get the correct fasta index"""
+
+    ref = get_ref_genome(wildcards)
+
+    return f"refs/{wildcards.pathogen}/{ref}.fasta.gz.fai"

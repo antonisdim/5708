@@ -61,5 +61,5 @@ treewas <- function(tree_file, outgroup, aln_file, pop_metadata, plot_file, out_
     write.table(treewas_res, file=out_table, row.names=FALSE, quote=FALSE, sep='\t')
 }
 
-# run the install function
+# run the function
 treewas(tree_file, outgroup, aln_file, pop_metadata, plot_file, out_table)
