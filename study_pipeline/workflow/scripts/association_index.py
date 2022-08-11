@@ -11,41 +11,10 @@ import pandas as pd
 import random
 import statistics
 
-
 from Bio import Phylo as p
 from collections import Counter
 
-
-def population_host_metadata(pop_metadata):
-    # read the sample metadata file
-    pop_meta = pd.read_csv(pop_metadata, sep="\t")
-
-    # define lists with the broader host category
-    human = ["Human"]
-    ruminant = ["Beef", "Bovine", "Ovine/Goat"]
-    avian = ["Chicken", "Avian", "Poultry", "Turkey"]
-    food = ["Food", "Dairy"]
-    swine = ["Pork", "Swine"]
-    other_mammal = ["Primate", "Rodent", "Deer", "Canine"]
-    other = [
-        "Water/River",
-        "Soil/Dust",
-        "ND/Other",
-        "Laboratory",
-        "Plant",
-        "Animal-related",
-    ]
-
-    # assign trait value based on host organism/type
-    pop_meta.loc[pop_meta["Host"].isin(human), "Trait"] = "Human"
-    pop_meta.loc[pop_meta["Host"].isin(ruminant), "Trait"] = "Ruminant"
-    pop_meta.loc[pop_meta["Host"].isin(avian), "Trait"] = "Avian"
-    pop_meta.loc[pop_meta["Host"].isin(food), "Trait"] = "Food"
-    pop_meta.loc[pop_meta["Host"].isin(swine), "Trait"] = "Swine"
-    pop_meta.loc[pop_meta["Host"].isin(other_mammal), "Trait"] = "Other_mammal"
-    pop_meta.loc[pop_meta["Host"].isin(other), "Trait"] = "Other"
-
-    return pop_meta
+from utilities import population_host_metadata
 
 
 def calculate_clade_association_index(phylogeny, pop_meta_df, real_data=True):
@@ -135,7 +104,6 @@ def calculate_phylogeny_association_index(in_args):
 
         # Iterate through the tips in the bootstrap phylogeny
         for idx, phylogeny_tip in enumerate(bootstrap_phylogeny.get_terminals()):
-
             # Assign the tip to the ith trait
             phylogeny_tip.name = bootstrap_sample[idx]
 
@@ -183,7 +151,6 @@ def calculate_phylogeny_association_index(in_args):
 
 
 if __name__ == "__main__":
-
     # Instantiate an argument parser amd populate the arguments
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,

@@ -1,5 +1,6 @@
 channels:
+  - conda-forge
   - bioconda
-  - r
+  - defaults
 dependencies:
-  - fastbaps=1.0.4
+  - r-fastbaps=1.0.4

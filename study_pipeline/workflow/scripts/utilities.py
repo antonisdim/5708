@@ -209,3 +209,35 @@ def get_ref_idx(wildcards):
     ref = get_ref_genome(wildcards)
 
     return f"refs/{wildcards.pathogen}/{ref}.fasta.gz.fai"
+
+
+def population_host_metadata(pop_metadata):
+    # read the sample metadata file
+    pop_meta = pd.read_csv(pop_metadata, sep="\t")
+
+    # define lists with the broader host category
+    human = ["Human"]
+    ruminant = ["Beef", "Bovine", "Ovine/Goat"]
+    avian = ["Chicken", "Avian", "Poultry", "Turkey"]
+    food = ["Food", "Dairy"]
+    swine = ["Pork", "Swine"]
+    other_mammal = ["Primate", "Rodent", "Deer", "Canine"]
+    other = [
+        "Water/River",
+        "Soil/Dust",
+        "ND/Other",
+        "Laboratory",
+        "Plant",
+        "Animal-related",
+    ]
+
+    # assign trait value based on host organism/type
+    pop_meta.loc[pop_meta["Host"].isin(human), "Trait"] = "Human"
+    pop_meta.loc[pop_meta["Host"].isin(ruminant), "Trait"] = "Ruminant"
+    pop_meta.loc[pop_meta["Host"].isin(avian), "Trait"] = "Avian"
+    pop_meta.loc[pop_meta["Host"].isin(food), "Trait"] = "Food"
+    pop_meta.loc[pop_meta["Host"].isin(swine), "Trait"] = "Swine"
+    pop_meta.loc[pop_meta["Host"].isin(other_mammal), "Trait"] = "Other_mammal"
+    pop_meta.loc[pop_meta["Host"].isin(other), "Trait"] = "Other"
+
+    return pop_meta
