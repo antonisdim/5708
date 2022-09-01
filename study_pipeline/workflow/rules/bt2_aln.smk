@@ -6,7 +6,7 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-from scripts.utilities import get_read_file
+from scripts.utilities import get_r1, get_r2
 
 MIN_FRAG_LEN = 0
 MAX_FRAG_LEN = 1000
@@ -48,18 +48,6 @@ rule bowtie_index_accession:
         "../envs/bowtie2.yaml"
     shell:
         "bowtie2-build --large-index --threads {threads} {input} {params.basename} &> {log}"
-
-
-def get_r1(wildcards):
-    """Get the relative path to the R1 read file"""
-
-    return get_read_file(wildcards, "1")
-
-
-def get_r2(wildcards):
-    """Get the relative path to the R2 read file"""
-
-    return get_read_file(wildcards, "2")
 
 
 rule bowtie_align_accession_paired_end:

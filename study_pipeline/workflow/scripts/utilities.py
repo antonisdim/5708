@@ -188,6 +188,18 @@ def get_read_file(wildcards, mate):
     return sam_path
 
 
+def get_r1(wildcards):
+    """Get the relative path to the R1 read file"""
+
+    return get_read_file(wildcards, "1")
+
+
+def get_r2(wildcards):
+    """Get the relative path to the R2 read file"""
+
+    return get_read_file(wildcards, "2")
+
+
 def get_clusters_to_run():
     """Get the clusters that summary stats will be run on"""
 

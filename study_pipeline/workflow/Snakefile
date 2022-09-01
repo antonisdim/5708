@@ -50,29 +50,37 @@ rule all:
         # expand("seqs_ecoli/ecoli_cluster_{num}_seq_summary.tsv", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
         # expand("gatk_ecoli/ecoli_cluster_{num}_SNP_filter_table.tsv", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
         # expand("gatk_ecoli/ecoli_cluster_{num}_sfs.pdf", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
-        # expand("trees_ecoli/RAxML_bestTree.ecoli_cluster_{num}", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11]),
         # expand(
         #     "trees_ecoli/ecoli_cluster_{num}_iq.treefile",
         #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         # ),
         # "trees_ecoli/ecoli_population_21_iq.treefile",
         # "aux_files/github_r.done",
-        # expand(
-        #     "trees_stats_ecoli/ecoli_cluster_{num}_treewas.tsv",
-        #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
-        # ),
         # "trees_stats_ecoli/ecoli_cluster_tree_stats.tsv",
         # "trees_stats_ecoli/ecoli_population_21_total_host_links.tsv",
         # expand(
         #     "muttui_ecoli/ecoli_cluster_{num}/all_included_mutations.csv",
         #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         # ),
+        # expand(
+        #     "muttui_ecoli/ecoli_cluster_{num}_label/all_included_mutations.csv",
+        #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        # ),
+        # expand(
+        #     "ariba_card_ecoli/ecoli_cluster_{num}_report.csv",
+        #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        # ),
+        # expand(
+        #     "ariba_vfdb_core_ecoli/ecoli_cluster_{num}_report.csv",
+        #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        # ),
         expand(
-            "muttui_ecoli/ecoli_cluster_{num}_label/all_included_mutations.csv",
+            "abricate_card_ecoli/ecoli_cluster_{num}_report.tsv",
             num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
         ),
-        # "msa_ecoli/ecoli_population_21_chr_aln.fasta",
-        # "ariba_card_ecoli/ecoli_cluster_15_report.csv",
-        # "abricate_card_ecoli/ecoli_cluster_15_report.tsv",
+        expand(
+            "abricate_vfdb_ecoli/ecoli_cluster_{num}_report.tsv",
+            num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        ),
         # "gatk_ecoli/ecoli_cluster_1000_SNP_filter_table.tsv",
         # "gatk_ecoli/ecoli_cluster_1000_sfs.pdf",

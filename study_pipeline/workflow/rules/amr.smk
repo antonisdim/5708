@@ -8,6 +8,8 @@ __license__ = "MIT"
 
 import os
 
+from scripts.utilities import get_right_pathogen, get_r1, get_r2
+
 os.makedirs("ariba_tmp", exist_ok=True)
 
 
@@ -24,7 +26,7 @@ rule ariba_getref:
     params:
         out_basename="public_dbs/{db}",
     shell:
-        "ariba getref card {params.out_basename} &> {log}"
+        "ariba getref {wildcards.db} {params.out_basename} &> {log}"
 
 
 rule ariba_prepareref:
@@ -50,13 +52,13 @@ rule ariba_prepareref:
 
 rule ariba_run:
     input:
-        r1="adRm/{sample}_R1_adRm.fastq.gz",
-        r2="adRm/{sample}_R2_adRm.fastq.gz",
+        r1=get_r1,
+        r2=get_r2,
         db="ariba_{db}/02.cdhit.clusters.tsv",
     output:
         "ariba_{db}_{pathogen}/{sample}/assembled_genes.fa.gz",
-        "ariba_{db}_{pathogen}/{sample}/assembled_seqs.fa.gz",
-        "ariba_{db}_{pathogen}/{sample}/assemblies.fa.gz",
+        temp("ariba_{db}_{pathogen}/{sample}/assembled_seqs.fa.gz"),
+        temp("ariba_{db}_{pathogen}/{sample}/assemblies.fa.gz"),
         "ariba_{db}_{pathogen}/{sample}/debug.report.tsv",
         "ariba_{db}_{pathogen}/{sample}/log.clusters.gz",
         "ariba_{db}_{pathogen}/{sample}/report.tsv",
@@ -93,14 +95,14 @@ rule ariba_summary:
     input:
         get_ariba_cluster_reports,
     output:
-        "ariba_{db}_{pathogen}/{pathogen}_cluster_{cluster}_report.csv",
+        "ariba_{db}_{pathogen}/{pathogen}_{population}_{cluster}_report.csv",
     message:
-        "Summarising the ariba reports for {wildcards.pathogen} cluster {wildcards.cluster} "
+        "Summarising the ariba reports for {wildcards.pathogen} {wildcards.population} {wildcards.cluster} "
         "for {wildcards.db} db."
     conda:
         "../envs/amr.yaml"
     params:
-        out_prefix="ariba_{db}_{pathogen}/{pathogen}_cluster_{cluster}_report",
+        out_prefix="ariba_{db}_{pathogen}/{pathogen}_{population}_{cluster}_report",
     shell:
         "ariba summary {params.out_prefix} {input} --preset all && "
         "sed -i 's/ariba_{wildcards.db}_{wildcards.pathogen}\///g' {output} && "
@@ -117,7 +119,7 @@ rule abricate_run:
     conda:
         "../envs/amr.yaml"
     shell:
-        "abricate --db card --nopath {input} | sed 's/_scaffolds.fasta//g' > {output}"
+        "abricate --db {wildcards.db} --nopath {input} | sed 's/_scaffolds.fasta//g' > {output}"
 
 
 def get_abricate_cluster_reports(wildcards):
@@ -138,9 +140,9 @@ rule abricate_summary:
     input:
         get_abricate_cluster_reports,
     output:
-        "abricate_{db}_{pathogen}/{pathogen}_cluster_{cluster}_report.tsv",
+        "abricate_{db}_{pathogen}/{pathogen}_{population}_{cluster}_report.tsv",
     message:
-        "Summarising the abricate reports for {wildcards.pathogen} cluster {wildcards.cluster} "
+        "Summarising the abricate reports for {wildcards.pathogen} {wildcards.population} {wildcards.cluster} "
         "for {wildcards.db} db."
     conda:
         "../envs/amr.yaml"
