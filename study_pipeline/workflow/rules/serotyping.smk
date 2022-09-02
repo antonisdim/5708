@@ -7,23 +7,28 @@ __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
 
-from scripts.utilities import get_right_pathogen, get_ref_genome
+from scripts.utilities import get_right_pathogen, get_ref_genome, get_r1
 
 
 rule serotyping:
     input:
-        "seqs_{pathogen}/{sample}_ref_{accession}.fasta",
+        get_r1,
     log:
         "serotyping_{pathogen}/{sample}_ref_{accession}.log",
     output:
         table=temp("serotyping_{pathogen}/{sample}_ref_{accession}.tsv"),
         dir=temp(directory("serotyping_{pathogen}/{sample}_ref_{accession}")),
+        fastq_un=temp(
+            "serotyping_{pathogen}/{sample}_ref_{accession}/{sample}_R1_adRm.fastq"
+        ),
     message:
         "Getting the surface antigen types for {wildcards.pathogen} sample {wildcards.sample}."
     conda:
         "../envs/ectyper.yaml"
     shell:
-        "(ectyper --input {input} --output {output.dir} && mv {output.dir}/output.tsv {output.table}) &> {log}"
+        "(zcat {input} > {output.fastq_un} && "
+        "ectyper --input {output.fastq_un} --output {output.dir} && "
+        "mv {output.dir}/output.tsv {output.table}) &> {log}"
 
 
 def get_serotyping_cluster_reports(wildcards):
