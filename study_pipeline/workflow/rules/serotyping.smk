@@ -27,7 +27,7 @@ rule serotyping:
         "../envs/ectyper.yaml"
     shell:
         "(zcat {input} > {output.fastq_un} && "
-        "ectyper --input {output.fastq_un} --output {output.dir} && "
+        "ectyper --input {output.fastq_un} --verify --output {output.dir} && "
         "mv {output.dir}/output.tsv {output.table}) &> {log}"
 
 
@@ -57,4 +57,4 @@ rule serotyping_summary:
     params:
         ref=lambda wildcards: get_ref_genome(wildcards),
     shell:
-        "awk 'FNR>1 || NR==1' {input} | sed 's/_ref_{params.ref}//g' > {output}"
+        "awk 'FNR>1 || NR==1' {input} | sed 's/_R1_adRm//g' > {output}"
