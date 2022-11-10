@@ -107,7 +107,7 @@ rule run_bakta:
         outdir="bakta_{pathogen}",
     shell:
         "(bakta --db {input.db} --output {params.outdir} --prefix {wildcards.accession} "
-        "--verbose --compliant --threads {threads}  {input.scaffold}) &> {log}"
+        "--verbose --threads {threads}  {input.scaffold}) &> {log}"
 
 
 def get_bakta_gff_paths(wildcards):

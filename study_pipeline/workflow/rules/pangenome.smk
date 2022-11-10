@@ -18,7 +18,7 @@ def get_gff_paths(wildcards):
     input_paths = []
 
     for sample in samples_list:
-        input_paths.append(f"prokka_{wildcards.pathogen}/{sample}.gff")
+        input_paths.append(f"bakta_{wildcards.pathogen}/{sample}.gff3")
 
     return input_paths
 
@@ -36,6 +36,19 @@ checkpoint batch_panaroo:
         "../scripts/pangenome_batch.py"
 
 
+rule convert_refseq_to_prokka_gff:
+    input:
+        "bakta_{pathogen}/{accession}.gff3",
+    output:
+        temp("bakta_{pathogen}/{accession}_prokka.gff3"),
+    message:
+        "Converting the bakta gff3 file for sample {wildcards.accession} into a prokka gff file."
+    conda:
+        "../envs/panaroo.yaml"
+    shell:
+        "python scripts/convert_refseq_to_prokka_gff.py --gff {input} --out {output}"
+
+
 def get_gff_batch(wildcards):
     """Get the paths for the gff files."""
 
@@ -47,7 +60,7 @@ def get_gff_batch(wildcards):
     input_paths = []
 
     for idx, row in sample_batch.iterrows():
-        input_paths.append(f"prokka_{wildcards.pathogen}/{row['sample']}.gff")
+        input_paths.append(f"bakta_{wildcards.pathogen}/{row['sample']}_prokka.gff3")
 
     return input_paths
 
@@ -58,6 +71,7 @@ rule run_panaroo:
     log:
         "panaroo_{pathogen}/pangenome_{batch}.log",
     output:
+        batch_file="panaroo_{pathogen}/pangenome_{batch}.tsv",
         outdir=directory("panaroo_{pathogen}/pangenome_{batch}"),
         pangenome_ref="panaroo_{pathogen}/pangenome_{batch}/pan_genome_reference.fa",
     message:
@@ -68,7 +82,8 @@ rule run_panaroo:
     conda:
         "../envs/panaroo.yaml"
     shell:
-        "(panaroo -i {input} -o {output.outdir} --clean-mode strict -t {threads}) 2> {log}"
+        '(echo {input} | awk \'BEGIN{{FS=" "; OFS="\\n"}} {{$1=$1}} 1\' > {output.batch_file} && '
+        "panaroo -i {output.batch_file} -o {output.outdir} --clean-mode strict -t {threads}) 2> {log}"
 
 
 def get_panaroo_graphs(wildcards):
