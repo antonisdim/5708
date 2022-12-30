@@ -144,7 +144,9 @@ def get_ref_genome(wildcards):
     )
 
     return ref_genomes.loc[
-        ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
+        (ref_genomes["Cluster"] == int(wildcards.cluster))
+        & (ref_genomes["Species"] == wildcards.pathogen),
+        "Accession",
     ].to_list()[0]
 
 
@@ -171,7 +173,9 @@ def get_out_genome(wildcards):
     )
 
     return ref_genomes.loc[
-        ref_genomes["Cluster"] == int(wildcards.cluster), "Accession"
+        (ref_genomes["Cluster"] == int(wildcards.cluster))
+        & (ref_genomes["Species"] == wildcards.pathogen),
+        "Accession",
     ].to_list()[0]
 
 
@@ -229,12 +233,14 @@ def population_host_metadata(pop_metadata):
 
     # define lists with the broader host category
     human = ["Human"]
-    ruminant = ["Beef", "Bovine", "Ovine/Goat"]
-    avian = ["Chicken", "Avian", "Poultry", "Turkey"]
+    ruminant = ["Beef", "Bovine", "Sheep", "Goat", "Ovine/Goat"]
+    avian = ["Chicken", "Avian", "Crow", "Poultry", "Turkey"]
     food = ["Food", "Dairy"]
     swine = ["Pork", "Swine"]
     other_mammal = ["Primate", "Rodent", "Deer", "Canine"]
     other = [
+        "Soil",
+        "Water",
         "Water/River",
         "Soil/Dust",
         "ND/Other",

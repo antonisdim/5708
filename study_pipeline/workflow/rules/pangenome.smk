@@ -148,4 +148,4 @@ rule snp_core_aln:
     conda:
         "../envs/snpsites.yaml"
     shell:
-        "(snp-sites -m -o {output.snp_msa} {input.msa}) 2> {log}"
+        "(snp-sites -m -o {output.snp_msa} {input.msa} && sed -i 's/_prokka//g' {output.snp_msa}) 2> {log}"

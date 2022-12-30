@@ -51,14 +51,14 @@ rule get_chromosome_snps_nrec_aln:
         temp("msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta"),
     message:
         "Getting only the polymorphic positions from the chromosome alignment of "
-        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster} before removing recombination."
     conda:
         "../envs/snpsites.yaml"
     shell:
         "(snp-sites -m -o {output} {input})"
 
-
-rule fst:
+#todo correct uneven sample sizes - maybe bonferroni correction 
+rule distances:
     input:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
         aln_rec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta",
@@ -67,17 +67,20 @@ rule fst:
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_fst.log",
     output:
-        table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_fst.tsv",
+        sum_table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_sum_fst.tsv",
+        pair_wc="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pair_fst_wc.tsv",
+        dist_nei="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_dist_nei.tsv",
     message:
-        "Calucluate Nei's and Weir and Cockerham's Fst for {wildcards.pathogen} {wildcards.population} "
-        "{wildcards.cluster}, before and after removing recombinant regions."
+        "Calucluate Nei's and Weir and Cockerham's Fst (pairwise and total) and Nei's genetic distance for "
+        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}, "
+        "before and after removing recombinant regions."
     conda:
         "../envs/rgithub.yaml"
     params:
         out=lambda wildcards: get_out_genome(wildcards),
     shell:
-        "(Rscript scripts/fst.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
-        "{input.pop_meta} {output.table}) &> {log}"
+        "(Rscript scripts/distances.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
+        "{input.pop_meta} {output.sum_table} {output.pair_wc} {output.dist_nei}) &> {log}"
 
 
 rule heritability:

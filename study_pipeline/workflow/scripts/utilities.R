@@ -37,12 +37,13 @@ population_host_metadata <- function(pop_metadata) {
     pop_meta <- read.csv(file = pop_metadata, sep = "\t")
 
     human <-c("Human")
-    ruminant <- c("Beef", "Bovine", "Ovine/Goat")
-    avian <- c("Chicken", "Avian", "Poultry", "Turkey")
+    ruminant <- c("Beef", "Bovine", "Sheep", "Goat", "Ovine/Goat")
+    avian <- c("Chicken", "Avian", "Crow", "Poultry", "Turkey")
     food <- c("Food", "Dairy")
     swine <- c("Pork", "Swine")
     other_mammal <- c("Primate", "Rodent", "Deer", "Canine", "Feline", "Marine Mammal", "Other Mammal")
-    other <- c("Water/River", "Soil/Dust", "ND/Other", "Laboratory", "Plant", "Animal-related", "Environment")
+    other <- c("Soil", "Water", "Water/River", "Soil/Dust", "ND/Other", "Laboratory", "Plant", "Animal-related",
+        "Environment")
 
     pop_meta$Trait[pop_meta$Host %in% human] <- "Human"
     pop_meta$Trait[pop_meta$Host %in% ruminant] <- "Ruminant"

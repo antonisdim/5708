@@ -26,5 +26,5 @@ rule consensus_fasta:
         'if [[ "$sample" == *"SB27"* ]] || [[ "$sample" == *"SRR"* ]] || [[ "$sample" == *"ERR"* ]] || [[ "$sample" == *"DRR"* ]]; then'
         "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> {output}) 2> {log};"
         "else "
-        "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M {input.bam_file} 1> {output}) 2> {log};"
+        "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 20 -Q 20 -M {input.bam_file} 1> {output}) 2> {log};"
         "fi"
