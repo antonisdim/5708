@@ -60,3 +60,19 @@ population_host_metadata <- function(pop_metadata) {
 
     return(pop_meta)
 }
+
+
+parse_eucd <- function(eucd_df, metadata_df, dist_type) {
+	# subset the euclidean distribution dataframe to only keep SB27 (rows) vs Context samples (cols)
+	meta <- read.csv(metadata_df, sep='\t', header = TRUE, stringsAsFactor=F)
+    meta_sb27 <- meta[meta$Dataset == 'SB27', ]
+    meta_contx <- meta[meta$Dataset == 'Context', ]
+
+	eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_sb27$sample, colnames(eucd_df) %in% meta_contx$sample]
+	eucd_subset <- rownames_to_column(eucd_subset, 'sample')
+
+	# melt the dataframe
+	eucd_melted <- melt(eucd_subset, id.vars="sample")
+	eucd_melted$dist <- dist_type
+	return(eucd_melted)
+}

@@ -204,13 +204,16 @@ def get_r2(wildcards):
     return get_read_file(wildcards, "2")
 
 
-def get_clusters_to_run():
+def get_clusters_to_run(wildcards):
     """Get the clusters that summary stats will be run on"""
 
     ref_genomes = pd.read_csv(
         REF_GENOME_TABLE,
         sep="\t",
     )
+    ref_genomes = ref_genomes.loc[
+        ref_genomes["Species"] == wildcards.pathogen,
+    ]
 
     clusters = ref_genomes["Cluster"].unique().tolist()
     clusters.pop(0)

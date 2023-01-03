@@ -74,7 +74,7 @@ rule remove_recombination:
     params:
         basename="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln",
         out=lambda wildcards: get_out_genome(wildcards),
-        percent_n=95.0
+        percent_n=95.0,
     shell:
         "(export OPENBLAS_NUM_THREADS=1 && "
         "run_gubbins.py --prefix {params.basename} --first-tree-builder fasttree --tree-builder raxml "

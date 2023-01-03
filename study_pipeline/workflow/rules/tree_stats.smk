@@ -57,7 +57,8 @@ rule get_chromosome_snps_nrec_aln:
     shell:
         "(snp-sites -m -o {output} {input})"
 
-#todo correct uneven sample sizes - maybe bonferroni correction 
+
+# todo correct uneven sample sizes - maybe bonferroni correction
 rule distances:
     input:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
@@ -132,7 +133,7 @@ def get_cluster_treewas(wildcards):
     """Get the fst files belonging for the clusters that have been run so far"""
 
     input_paths = []
-    cluster_list = get_clusters_to_run()
+    cluster_list = get_clusters_to_run(wildcards)
 
     for cluster in cluster_list:
         input_paths.append(
@@ -146,11 +147,11 @@ def get_cluster_fst(wildcards):
     """Get the fst files belonging for the clusters that have been run so far"""
 
     input_paths = []
-    cluster_list = get_clusters_to_run()
+    cluster_list = get_clusters_to_run(wildcards)
 
     for cluster in cluster_list:
         input_paths.append(
-            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_fst.tsv"
+            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_sum_fst.tsv"
         )
 
     return input_paths
@@ -160,7 +161,7 @@ def get_cluster_heritability(wildcards):
     """Get the fst files belonging for the clusters that have been run so far"""
 
     input_paths = []
-    cluster_list = get_clusters_to_run()
+    cluster_list = get_clusters_to_run(wildcards)
 
     for cluster in cluster_list:
         input_paths.append(
@@ -174,7 +175,7 @@ def get_cluster_assoc_idx(wildcards):
     """Get the fst files belonging for the clusters that have been run so far"""
 
     input_paths = []
-    cluster_list = get_clusters_to_run()
+    cluster_list = get_clusters_to_run(wildcards)
 
     for cluster in cluster_list:
         input_paths.append(
@@ -235,3 +236,25 @@ rule transition_analysis:
     shell:
         "(Rscript scripts/transition_analysis.R {input.snps} {input.tree} {params.out} {input.pop_meta} "
         "{output.all_hosts} {output.boot_hosts} {output.anc_states} {output.anc_counts}) &> {log}"
+
+
+rule cohort_comparison:
+    input:
+        aln="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
+        pop_meta="aux_files/{pathogen}_all_meta.tsv",
+    log:
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_cohort_comparison.log",
+    output:
+        histogram="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_cohort_hist.pdf",
+        pvalues="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_cohort_pvalues.tsv",
+    message:
+        "Comparing whether the SB27 cohort differs from the contextual one for "
+        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    params:
+        outgroup=lambda wildcards: get_out_genome(wildcards),
+    conda:
+        "../envs/rgithub.yaml"
+    shell:
+        "(Rscript scripts/cohort_comparison.R {input.tree} {params.outgroup} {input.aln} {input.pop_meta} "
+        "{output.histogram} {output.pvalues}) &> {log}"
