@@ -69,6 +69,14 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type) {
     meta_contx <- meta[meta$Dataset == 'Context', ]
 
 	eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_sb27$sample, colnames(eucd_df) %in% meta_contx$sample]
+    if (dim(eucd_subset)[1] == 0) {
+    eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_contx$sample, colnames(eucd_df) %in% meta_contx$sample]
+    dist_type <- paste(dist_type, 'No SB27', sep = '-')
+    }
+    if (dim(meta_contx)[1] == 0) {
+    eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_sb27$sample, colnames(eucd_df) %in% meta_sb27$sample]
+    dist_type <- paste(dist_type, 'No Context', sep = '-')
+    }
 	eucd_subset <- rownames_to_column(eucd_subset, 'sample')
 
 	# melt the dataframe
