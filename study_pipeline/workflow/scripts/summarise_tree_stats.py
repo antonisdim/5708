@@ -46,7 +46,7 @@ def summarise_tree_stats(
         )
 
         # extract the name and the fst
-        fst_cluster_df.loc[0, "Cluster"] = "_".join(fst_file.split("_")[:-1])
+        fst_cluster_df.loc[0, "Cluster"] = "_".join(fst_file.split("_")[:-2])
         fst_cluster_df.loc[0, "Nei's Fst Rec"] = fst_df_tmp.loc[
             fst_df_tmp["Rec state"] == "Recombination", "Nei's Fst"
         ].item()

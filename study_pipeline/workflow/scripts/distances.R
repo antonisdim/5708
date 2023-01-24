@@ -20,28 +20,20 @@ library(ade4)
 library(adegenet)
 library(ape)
 library(hierfstat)
+library(pegas)
 
 # read the utility functions
 source("scripts/utilities.R")
 
 # hierfstat function
-hierfstat_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) {
-
-    # read tree
-    tree_r_no_out <- read_tree(tree_file, outgroup)
-
-    # read aln data from file:
-    genind_obj <- read_aln(aln_file, tree_r_no_out)
-
-    # read file with population metadata
-    pop_meta <- population_host_metadata(pop_metadata)
+hierfstat_calculate <- function(tree_obj, dna_obj, pop_meta) {
 
     # load traits
-    pop_trait <- pop_meta[pop_meta$sample %in% tree_r_no_out$tip.label,]
+    pop_trait <- pop_meta[pop_meta$sample %in% tree_obj$tip.label,]
     phen_cat <- setNames(pop_trait$Trait, pop_trait$sample)
 
     # convert genind object to hierfstat input
-    hierfstat_input <- genind2hierfstat(genind_obj, pop=phen_cat)
+    hierfstat_input <- genind2hierfstat(dna_obj, pop=phen_cat)
 
     # calculate Nei's Fst - based on genotype frequencies
     nei_fstat <- basic.stats(hierfstat_input, diploid=FALSE,digits=2)$overall
@@ -62,11 +54,17 @@ hierfstat_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) {
 distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, pop_metadata, sum_out_table,
     pair_wc_fst_out_table, pair_nei_dist_out_table) {
 
+    # read tree
+    tree_r_no_out <- read_tree(tree_file, outgroup)
+
+    # read file with population metadata
+    pop_meta <- population_host_metadata(pop_metadata)
+
     # get the Fsts for the alignments before we remove the recombination
-    rec_dist <- hierfstat_calculate(tree_file, outgroup, aln_file_rec, pop_metadata)
+    rec_dist <- hierfstat_calculate(tree_r_no_out, read_aln(aln_file_rec, tree_r_no_out), pop_meta)
 
     # get the Fsts for the alignments after we remove the recombination
-    nrec_dist <- hierfstat_calculate(tree_file, outgroup, aln_file_nrec, pop_metadata)
+    nrec_dist <- hierfstat_calculate(tree_r_no_out, read_aln(aln_file_nrec, tree_r_no_out), pop_meta)
 
     # combine the results
     rec_res <- c("Recombination", rec_dist[[1]])
