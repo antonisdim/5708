@@ -10,10 +10,12 @@ tree_file <- args[1]
 outgroup <- args[2]
 aln_file_rec <- args[3]
 aln_file_nrec <- args[4]
-pop_metadata <- args[5]
-sum_out_table <- args[6]
-pair_wc_fst_out_table <- args[7]
-pair_nei_dist_out_table <- args[8]
+aln_file_nrec_chr <- args[5]
+pop_metadata <- args[6]
+sum_out_table <- args[7]
+pair_wc_fst_out_table <- args[8]
+pair_nei_dist_out_table <- args[9]
+fst_sw_out_table <- args[10]
 
 # load libs
 library(ade4)
@@ -21,12 +23,51 @@ library(adegenet)
 library(ape)
 library(hierfstat)
 library(pegas)
+library(reshape2)
 
 # read the utility functions
 source("scripts/utilities.R")
 
+# sliding window function
+
+sw_fst_scan <- function(aln_file_nrec_chr, tree_obj) {
+
+    # define the parameters for the sliding window Fst
+    aln <- read_aln(aln_file_nrec_chr, tree_obj, sw = TRUE)
+    window_size <- 10000
+    overlap <- 9000
+    step <- window_size - overlap
+    starts <- if (dim(aln)[2] > window_size) seq(1, dim(aln)[2], by = step) else seq(1:1)
+    n <- length(starts)
+    genome_bins <- list()
+
+    # start the SW
+    for (i in 1:n) {
+        start <- if (length(starts) > 1) (starts[i]) else 1
+        end <- if ((start + window_size - 1) < dim(aln)[2]) (start + window_size - 1) else dim(aln)[2]
+        chunk <- aln[,start:end]
+        chunk_res <- hierfstat_calculate(tree_obj, DNAbin2genind(chunk), pop_meta, sw = TRUE)
+        genome_bins[[i]] <- chunk_res[[2]]
+     }
+
+    # store the results
+    sw_fst <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("Host_1", "Host_2", "Fst", "Bin"))
+
+    for (i in 1:n) {
+        matrix_input <- genome_bins[[i]]
+        matrix_input[is.na(matrix_input)] <- 0
+        matrix_input[upper.tri(matrix_input)] <- NA
+        fst_df_melt <- melt(matrix_input, na.rm = TRUE)
+        fst_df_melt$bin <- if (length(starts) > 1) (starts[i]) else 1
+        sw_fst <- rbind.data.frame(sw_fst, fst_df_melt)
+    }
+    names(sw_fst) <- c("Host_1", "Host_2", "Fst", "Bin")
+
+    return(sw_fst)
+}
+
 # hierfstat function
-hierfstat_calculate <- function(tree_obj, dna_obj, pop_meta) {
+hierfstat_calculate <- function(tree_obj, dna_obj, pop_meta, sw = FALSE) {
 
     # load traits
     pop_trait <- pop_meta[pop_meta$sample %in% tree_obj$tip.label,]
@@ -35,24 +76,34 @@ hierfstat_calculate <- function(tree_obj, dna_obj, pop_meta) {
     # convert genind object to hierfstat input
     hierfstat_input <- genind2hierfstat(dna_obj, pop=phen_cat)
 
-    # calculate Nei's Fst - based on genotype frequencies
-    nei_fstat <- basic.stats(hierfstat_input, diploid=FALSE,digits=2)$overall
+    # if not sliding windows calculate all the stats, otherwise do not waste time
+    if (!sw) {
+        # calculate Nei's Fst - based on genotype frequencies
+        nei_fstat <- basic.stats(hierfstat_input, diploid=FALSE,digits=2)$overall
 
-    # calculate WC's Fst - based on ANOVA and DNA sequence data
-    wc_fstat <- wc(hierfstat_input, diploid=FALSE)
+        # calculate WC's Fst - based on ANOVA and DNA sequence data
+        wc_fstat <- wc(hierfstat_input, diploid=FALSE)
+
+        # calculate Nei's Ds - the 1984 formulation also known as Da
+        nei_dist <- genet.dist(hierfstat_input, diploid=FALSE, method="Da")
+    }
 
     # calculate WC's pairwise Fst - we prefer this to Nei's as the latter overestimates structure
     wc_pair_fstat <- pairwise.WCfst(hierfstat_input, diploid=FALSE)
 
-    # calculate Nei's Ds - the 1984 formulation also known as Da
-    nei_dist <- genet.dist(hierfstat_input, diploid=FALSE, method="Da")
+    # chose what list to return based on whether we do sliding windows or not
+    if (sw) {
+    stats <- list(NULL, wc_pair_fstat, NULL)
+    } else {
+    stats <- list(c(nei_fstat['Fst'], wc_fstat$FST), wc_pair_fstat, nei_dist)
+    }
 
-    return(list(c(nei_fstat['Fst'], wc_fstat$FST), wc_pair_fstat, nei_dist))
+    return(stats)
 }
 
 # function to calculate Fsts before and after masking recombination
-distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, pop_metadata, sum_out_table,
-    pair_wc_fst_out_table, pair_nei_dist_out_table) {
+distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_file_nrec_chr, pop_metadata,
+    sum_out_table, pair_wc_fst_out_table, pair_nei_dist_out_table, fst_sw_out_table) {
 
     # read tree
     tree_r_no_out <- read_tree(tree_file, outgroup)
@@ -91,8 +142,14 @@ distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, pop_met
     cat("Nei's pairwise genetic distances - no recombination", file=pair_nei_dist_out_table, sep="\n", append=TRUE)
     write.table(as.matrix(nrec_dist[[3]]), file=pair_nei_dist_out_table, quote=FALSE, row.names=TRUE, sep="\t",
         append=TRUE )
+
+    # run sliding window fst scan across the genome
+    sw_fst <- sw_fst_scan(aln_file_nrec_chr, tree_r_no_out)
+
+    write.table(sw_fst, file=fst_sw_out_table, row.names=FALSE, quote=FALSE, sep='\t')
+
 }
 
 # run the install function
-distances(tree_file, outgroup, aln_file_rec, aln_file_nrec, pop_metadata, sum_out_table,
-    pair_wc_fst_out_table, pair_nei_dist_out_table)
+distances(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_file_nrec_chr, pop_metadata,
+    sum_out_table, pair_wc_fst_out_table, pair_nei_dist_out_table, fst_sw_out_table)

@@ -21,14 +21,17 @@ read_tree <- function(tree_file, outgroup) {
 }
 
 
-read_aln <- function(aln_file, tree_r_no_out) {
+read_aln <- function(aln_file, tree_r_no_out, sw = FALSE) {
     # read data from file:
     dna <- read.dna(file = aln_file, format = "fasta", as.matrix = TRUE)
     dna <- dna[tree_r_no_out$tip.label,]
 
     # convert dna to genid and get the nucleotide matrix
     genid_obj <- DNAbin2genind(dna)
-    return(genid_obj)
+
+    # based on if I am doing a sliding window either return the DNAbin object or the Genind object
+    aln_obj <- if (sw) dna else genid_obj
+    return(aln_obj)
 }
 
 
