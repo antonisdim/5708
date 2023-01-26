@@ -37,6 +37,8 @@ sw_fst_scan <- function(aln_file_nrec_chr, tree_obj, pop_meta) {
     window_size <- 10000
     overlap <- 9000
     step <- window_size - overlap
+
+    # starting sequence
     starts <- if (dim(aln)[2] > window_size) seq(1, dim(aln)[2], by = step) else seq(1:1)
     n <- length(starts)
     genome_bins <- list()
@@ -46,10 +48,14 @@ sw_fst_scan <- function(aln_file_nrec_chr, tree_obj, pop_meta) {
         start <- if (length(starts) > 1) (starts[i]) else 1
         end <- if ((start + step - 1) < dim(aln)[2]) (start + step - 1) else dim(aln)[2]
         chunk <- DNAbin2genind(aln[,start:end])
+
+        # if the segment has either samples where all the positions are NA or they are monomorphic then this will fail
         tryCatch({chunk_res <- hierfstat_calculate(tree_obj, chunk, pop_meta, sw = TRUE)},
             error= function(e) {cat("ERROR :",conditionMessage(e), "\n",
             "Fst cannot be calculated for that region. There is either too much missing data or no polymorphic positions.",
             "\n"))
+
+        # store an Fst matrix if successful, otherwise store NULL
         genome_bins[[i]] <- chunk_res[[2]]
      }
 
@@ -57,7 +63,10 @@ sw_fst_scan <- function(aln_file_nrec_chr, tree_obj, pop_meta) {
     sw_fst <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("Host_1", "Host_2", "Fst", "Bin"))
 
     for (i in 1:n) {
+        # if the element of the list is NULL it means that this bin has failed to produce an Fst
         if (is.null(genome_bins[[i]])) next
+
+        # convert the matrix format to long dataframe format
         matrix_input <- genome_bins[[i]]
         matrix_input[is.na(matrix_input)] <- 0
         matrix_input[upper.tri(matrix_input)] <- NA
