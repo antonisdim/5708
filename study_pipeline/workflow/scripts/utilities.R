@@ -65,20 +65,32 @@ population_host_metadata <- function(pop_metadata) {
 }
 
 
-parse_eucd <- function(eucd_df, metadata_df, dist_type) {
+parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
 	# subset the euclidean distribution dataframe to only keep SB27 (rows) vs Context samples (cols)
 	meta <- read.csv(metadata_df, sep='\t', header = TRUE, stringsAsFactor=F)
-    meta_sb27 <- meta[meta$Dataset == 'SB27', ]
-    meta_contx <- meta[meta$Dataset == 'Context', ]
 
-	eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_sb27$sample, colnames(eucd_df) %in% meta_contx$sample]
-    if (dim(eucd_subset)[1] == 0) {
-    eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_contx$sample, colnames(eucd_df) %in% meta_contx$sample]
-    dist_type <- paste(dist_type, 'No SB27', sep = '-')
+	if (cohort == 'sb27') {
+	set_1 = "SB27"
+	set_2 = "Context"
+	meta_set1 <- meta[meta$Dataset == 'SB27', ]
+    meta_set2 <- meta[meta$Dataset == 'Context', ]
+    } else if (cohort == 'source') {
+	set_1 = "Human"
+	set_2 = "Animal"
+	meta_set1 <- meta[meta$Host == 'Human', ]
+    meta_set2 <- meta[! meta$Host %in% c('Human', 'Water', 'Soil'), ]
+    } else {
+    stop("Options for this sample cohort haven't been coded yet. Either use sb27 or source.")
     }
-    if (dim(meta_contx)[1] == 0) {
-    eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_sb27$sample, colnames(eucd_df) %in% meta_sb27$sample]
-    dist_type <- paste(dist_type, 'No Context', sep = '-')
+
+	eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_set1$sample, colnames(eucd_df) %in% meta_set2$sample]
+    if (dim(eucd_subset)[1] == 0) {
+    eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_set2$sample, colnames(eucd_df) %in% meta_set2$sample]
+    dist_type <- paste(dist_type, paste('No', set_1, sep = ' '), sep = '-')
+    }
+    if (dim(meta_set2)[1] == 0) {
+    eucd_subset <- eucd_df[rownames(eucd_df) %in% meta_set1$sample, colnames(eucd_df) %in% meta_set1$sample]
+    dist_type <- paste(dist_type, paste('No', set_2, sep = ' '), sep = '-')
     }
 	eucd_subset <- rownames_to_column(eucd_subset, 'sample')
 

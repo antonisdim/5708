@@ -1,5 +1,5 @@
 # Title     : fst
-# Objective : Run Nei's (1982) and Weir and Cockerham's Fst
+# Objective : Compare the euclidean distances of cohorts of samples
 # Created by: Evangelos A. Dimopoulos"
 # Created on: 02/01/2023
 
@@ -11,6 +11,7 @@ aln_file <- args[3]
 pop_metadata <- args[4]
 hist_out_figure <- args[5]
 pval_out_table <- args[6]
+cohort <- args[7]
 
 # load libs
 library(adegenet)
@@ -26,7 +27,7 @@ source("scripts/utilities.R")
 # palette
 titipounamu <- c("#3E4331", "#AD6B17", "#66743B", "#D0C471", "#CCB62F", "#BAC4C2")
 
-cohort_comparison  <- function(tree_file, outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table) {
+cohort_comparison  <- function(tree_file, outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort) {
 
     # read tree
     tree_r_no_out <- read_tree(tree_file, outgroup)
@@ -39,7 +40,7 @@ cohort_comparison  <- function(tree_file, outgroup, aln_file, pop_metadata, hist
 
     # turn the dist object into a melted dataframe
     eucd_df <- as.data.frame(as.matrix(euclidean_dist, labels=TRUE))
-    eucd_null <- parse_eucd(eucd_df, pop_metadata, "Null distribution")
+    eucd_obs <- parse_eucd(eucd_df, pop_metadata, "Observed distribution", cohort)
 
     # define an empty dataset to store p-values and randomised euclidean distance datasets
     pvalues_df <- data.frame(iter = character(), Welch_pvalue = double(), Wilcox_pvalue = double())
@@ -49,17 +50,17 @@ cohort_comparison  <- function(tree_file, outgroup, aln_file, pop_metadata, hist
     for (iter in 1:100) {
         eucd_iter <- eucd_df
         colnames(eucd_iter) <- sample(colnames(eucd_iter))
-        eucd_rand <- parse_eucd(eucd_iter, pop_metadata, "Random sample")
+        eucd_rand <- parse_eucd(eucd_iter, pop_metadata, "Random sample", cohort)
 
         # calculate welch's t-test and Mann-Whitney-Wilcoxon's test
-        welch <- t.test(eucd_null$value, eucd_rand$value)
-        wilcox <- wilcox.test(eucd_null$value, eucd_rand$value)
+        welch <- t.test(eucd_obs$value, eucd_rand$value)
+        wilcox <- wilcox.test(eucd_obs$value, eucd_rand$value)
 
         test_vector <- c(iter, welch$p.value, wilcox$p.value)
         pvalues_df[nrow(pvalues_df) + 1, ] <- test_vector
 
         # for plots
-        compare <- rbind(eucd_rand, eucd_null)
+        compare <- rbind(eucd_rand, eucd_obs)
         compare$iter <- iter
 
         randomised_distances_list[[iter]] <- compare
@@ -73,7 +74,7 @@ cohort_comparison  <- function(tree_file, outgroup, aln_file, pop_metadata, hist
       theme_minimal() +
       xlab("Euclidean distance") +
       scale_fill_manual(values=titipounamu) +
-      theme(plot.title = element_text( size=12, hjust=0.5)) +
+      theme(plot.title = element_text(size=12, hjust=0.5)) +
       facet_wrap(~iter)
 
     ggsave(hist_out_figure, eucd_comparison_histogram, width=12, height=12)
@@ -87,5 +88,5 @@ cohort_comparison  <- function(tree_file, outgroup, aln_file, pop_metadata, hist
 }
 
 # run the function
-cohort_comparison(tree_file, outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table)
+cohort_comparison(tree_file, outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort)
 

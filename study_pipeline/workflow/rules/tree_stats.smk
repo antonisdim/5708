@@ -76,7 +76,8 @@ rule distances:
     message:
         "Calucluate Nei's and Weir and Cockerham's Fst (pairwise and total) and Nei's genetic distance for "
         "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}, "
-        "before and after removing recombinant regions."
+        "before and after removing recombinant regions. Also we are doing a sliding window pairwise WC Fst scan "
+        "across the genome after removing recombination."
     conda:
         "../envs/rgithub.yaml"
     params:
@@ -247,17 +248,17 @@ rule cohort_comparison:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
-        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_cohort_comparison.log",
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{set}_cohort_comparison.log",
     output:
-        histogram="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_cohort_hist.pdf",
-        pvalues="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_cohort_pvalues.tsv",
+        histogram="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{set}_cohort_hist.pdf",
+        pvalues="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{set}_cohort_pvalues.tsv",
     message:
-        "Comparing whether the SB27 cohort differs from the contextual one for "
-        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+        "Comparing whether the {wildcards.set} cohort differs from the contextual/animal one "
+        "for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
     params:
         outgroup=lambda wildcards: get_out_genome(wildcards),
     conda:
         "../envs/rgithub.yaml"
     shell:
         "(Rscript scripts/cohort_comparison.R {input.tree} {params.outgroup} {input.aln} {input.pop_meta} "
-        "{output.histogram} {output.pvalues}) &> {log}"
+        "{output.histogram} {output.pvalues} {wildcards.set}) &> {log}"

@@ -30,7 +30,7 @@ source("scripts/utilities.R")
 
 # sliding window function
 
-sw_fst_scan <- function(aln_file_nrec_chr, tree_obj) {
+sw_fst_scan <- function(aln_file_nrec_chr, tree_obj, pop_meta) {
 
     # define the parameters for the sliding window Fst
     aln <- read_aln(aln_file_nrec_chr, tree_obj, sw = TRUE)
@@ -44,9 +44,12 @@ sw_fst_scan <- function(aln_file_nrec_chr, tree_obj) {
     # start the SW
     for (i in 1:n) {
         start <- if (length(starts) > 1) (starts[i]) else 1
-        end <- if ((start + window_size - 1) < dim(aln)[2]) (start + window_size - 1) else dim(aln)[2]
-        chunk <- aln[,start:end]
-        chunk_res <- hierfstat_calculate(tree_obj, DNAbin2genind(chunk), pop_meta, sw = TRUE)
+        end <- if ((start + step - 1) < dim(aln)[2]) (start + step - 1) else dim(aln)[2]
+        chunk <- DNAbin2genind(aln[,start:end])
+        tryCatch({chunk_res <- hierfstat_calculate(tree_obj, chunk, pop_meta, sw = TRUE)},
+            error= function(e) {cat("ERROR :",conditionMessage(e), "\n",
+            "Fst cannot be calculated for that region. There is either too much missing data or no polymorphic positions.",
+            "\n"))
         genome_bins[[i]] <- chunk_res[[2]]
      }
 
@@ -54,6 +57,7 @@ sw_fst_scan <- function(aln_file_nrec_chr, tree_obj) {
     sw_fst <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("Host_1", "Host_2", "Fst", "Bin"))
 
     for (i in 1:n) {
+        if (is.null(genome_bins[[i]])) next
         matrix_input <- genome_bins[[i]]
         matrix_input[is.na(matrix_input)] <- 0
         matrix_input[upper.tri(matrix_input)] <- NA
@@ -144,7 +148,7 @@ distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_fil
         append=TRUE )
 
     # run sliding window fst scan across the genome
-    sw_fst <- sw_fst_scan(aln_file_nrec_chr, tree_r_no_out)
+    sw_fst <- sw_fst_scan(aln_file_nrec_chr, tree_r_no_out, pop_meta)
 
     write.table(sw_fst, file=fst_sw_out_table, row.names=FALSE, quote=FALSE, sep='\t')
 
