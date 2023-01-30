@@ -217,7 +217,8 @@ def get_clusters_to_run(wildcards):
 
     clusters = ref_genomes["Cluster"].unique().tolist()
     clusters.pop(0)
-    clusters.pop(-1)  # todo remove that
+    if wildcards.pathogen == 'ecoli': # todo remove that
+        clusters.pop(-1)
 
     return clusters
 

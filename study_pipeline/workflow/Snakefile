@@ -87,9 +87,8 @@ rule all:
         # "gatk_ecoli/ecoli_cluster_1000_SNP_filter_table.tsv",
         # "gatk_ecoli/ecoli_cluster_1000_sfs.pdf",
         # "panaroo_campylobacter/pangenome_merged/snps_core_gene_alignment.aln",
-        # "trees_stats_campylobacter/campylobacter_cluster_tree_stats.tsv",
+        "trees_stats_campylobacter/campylobacter_cluster_tree_stats.tsv",
         # expand(
         #     "trees_stats_campylobacter/campylobacter_cluster_{num}_cohort_hist.pdf",
         #     num=[1, 2, 4, 5, 6, 7, 8],
         # ),
-        "trees_stats_campylobacter/campylobacter_cluster_1_sw_fst.tsv"
