@@ -64,7 +64,7 @@ rule distances:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
         aln_rec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta",
         aln_nrec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
-        aln_nrec_chr="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec.fasta",
+        aln_rec_chr="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln.fasta",
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_fst.log",
@@ -84,7 +84,7 @@ rule distances:
         out=lambda wildcards: get_out_genome(wildcards),
     shell:
         "(Rscript scripts/distances.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
-        "{input.aln_nrec_chr} {input.pop_meta} {output.sum_table} {output.pair_wc} {output.dist_nei} "
+        "{input.aln_rec_chr} {input.pop_meta} {output.sum_table} {output.pair_wc} {output.dist_nei} "
         "{output.sw_fst}) &> {log}"
 
 

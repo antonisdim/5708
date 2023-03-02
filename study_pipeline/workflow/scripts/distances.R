@@ -10,7 +10,7 @@ tree_file <- args[1]
 outgroup <- args[2]
 aln_file_rec <- args[3]
 aln_file_nrec <- args[4]
-aln_file_nrec_chr <- args[5]
+aln_rec_chr <- args[5]
 pop_metadata <- args[6]
 sum_out_table <- args[7]
 pair_wc_fst_out_table <- args[8]
@@ -30,10 +30,10 @@ source("scripts/utilities.R")
 
 # sliding window function
 
-sw_fst_scan <- function(aln_file_nrec_chr, tree_obj, pop_meta) {
+sw_fst_scan <- function(aln_rec_chr, tree_obj, pop_meta) {
 
     # define the parameters for the sliding window Fst
-    aln <- read_aln(aln_file_nrec_chr, tree_obj, sw = TRUE)
+    aln <- read_aln(aln_rec_chr, tree_obj, sw = TRUE)
     window_size <- 10000
     overlap <- 9000
     step <- window_size - overlap
@@ -122,7 +122,7 @@ hierfstat_calculate <- function(tree_obj, dna_obj, pop_meta, sw = FALSE) {
 }
 
 # function to calculate Fsts before and after masking recombination
-distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_file_nrec_chr, pop_metadata,
+distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_rec_chr, pop_metadata,
     sum_out_table, pair_wc_fst_out_table, pair_nei_dist_out_table, fst_sw_out_table) {
 
     # read tree
@@ -164,12 +164,12 @@ distances  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_fil
         append=TRUE )
 
     # run sliding window fst scan across the genome
-    sw_fst <- sw_fst_scan(aln_file_nrec_chr, tree_r_no_out, pop_meta)
+    sw_fst <- sw_fst_scan(aln_rec_chr, tree_r_no_out, pop_meta)
 
     write.table(sw_fst, file=fst_sw_out_table, row.names=FALSE, quote=FALSE, sep='\t')
 
 }
 
 # run the install function
-distances(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_file_nrec_chr, pop_metadata,
+distances(tree_file, outgroup, aln_file_rec, aln_file_nrec, aln_rec_chr, pop_metadata,
     sum_out_table, pair_wc_fst_out_table, pair_nei_dist_out_table, fst_sw_out_table)

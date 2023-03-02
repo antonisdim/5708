@@ -65,6 +65,10 @@ def get_right_pathogen(wildcards, checkpoints, cont_check=True):
 
     if wildcards.pathogen == "ecoli":
         species = "Escherichia coli"
+    if wildcards.pathogen == "ccoli":
+        species = "Campylobacter coli"
+    if wildcards.pathogen == "cjejuni":
+        species = "Campylobacter jejuni"
     if wildcards.pathogen == "campylobacter":
         genus = "Campylobacter"
 
