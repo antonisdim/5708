@@ -106,5 +106,20 @@ rule all:
         expand(
             "trees_stats_{pathogen}/{pathogen}_cluster_1000_heritability.tsv",
             pathogen=['ccoli', 'cjejuni']
-        )
+        ),
+        expand(
+            "trees_stats_{pathogen}/{pathogen}_cluster_1000_treewas.pdf",
+            pathogen=['ccoli', 'cjejuni']
+        ),
+        expand(
+            "abricate_vfdb_{pathogen}/{pathogen}_cluster_1000_report.tsv",
+            pathogen=['ccoli', 'cjejuni']
+        ),
+        expand(
+            "abricate_card_{pathogen}/{pathogen}_cluster_1000_report.tsv",
+            pathogen=['ccoli', 'cjejuni']
+        ),
+
+
+
 
