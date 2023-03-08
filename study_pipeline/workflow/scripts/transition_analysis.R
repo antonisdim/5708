@@ -30,7 +30,6 @@ source("scripts/utilities.R")
 snp_dist_net <-
   function(snp_dist,
            tree_obj,
-           outgroup,
            pop_meta,
            out_table) {
 
@@ -141,7 +140,7 @@ transition_analysis <-
            state_tr_table) {
 
     tree_obj <- read_tree(treefile, outgroup)
-    snp_dist_net(snp_file, tree_obj, outgroup, pop_meta, all_out_table)
+    snp_dist_net(snp_file, tree_obj, pop_meta, all_out_table)
 
     sample_meta_df <- population_host_metadata(pop_meta)
     host_counts <- sample_meta_df %>% count(Trait, sort = TRUE) %>% arrange(n)
@@ -203,7 +202,6 @@ transition_analysis <-
 
       snp_dist_net(snp_file,
                    subset_tree,
-                   outgroup,
                    pop_meta,
                    out_table_iter)
 

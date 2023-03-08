@@ -223,7 +223,7 @@ rule transition_analysis:
     input:
         snps="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
-        pop_meta="aux_files/{pathogen}_big_lineages_meta.tsv",
+        pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_transition_analysis.log",
     output:

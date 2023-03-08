@@ -40,7 +40,7 @@ treewas <- function(tree_file, outgroup, aln_file, pop_metadata, plot_file, out_
     # run treeWas
     treewas_out <- treeWAS(mat, phen_num, tree = tree_r_no_out, seed = 12345, plot.tree = TRUE,
         plot.null.dist = TRUE, plot.dist = TRUE, plot.manhattan = TRUE, filename.plot = plot_file,
-        phen.type="categorical")
+        phen.type = "categorical", p.value = 0.05, correct.prop = TRUE)
 
     # count number of significant SNPs
     terminal_nsnps <- if (is.vector(treewas_out$terminal$sig.snps)) {0} else {nrow(treewas_out$terminal$sig.snps)}

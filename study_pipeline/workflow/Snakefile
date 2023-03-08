@@ -95,16 +95,7 @@ rule all:
         # "trees_stats_ccoli/ccoli_cluster_1000_pair_fst_wc.tsv",
         # "trees_stats_cjejuni/cjejuni_cluster_1000_pair_fst_wc.tsv",
         expand(
-            "trees_stats_{pathogen}/{pathogen}_cluster_1000_assoc_idx.tsv",
-            pathogen=['ccoli', 'cjejuni']
-        ),
-        expand(
-            "trees_stats_{pathogen}/{pathogen}_cluster_1000_{set}_cohort_hist.pdf",
-            pathogen=['ccoli', 'cjejuni'],
-            set=['sb27', 'source']
-        ),
-        expand(
-            "trees_stats_{pathogen}/{pathogen}_cluster_1000_heritability.tsv",
+            "trees_stats_{pathogen}/{pathogen}_cluster_1000_total_host_links.tsv",
             pathogen=['ccoli', 'cjejuni']
         ),
         expand(
