@@ -87,29 +87,23 @@ rule all:
         # "gatk_ecoli/ecoli_cluster_1000_SNP_filter_table.tsv",
         # "gatk_ecoli/ecoli_cluster_1000_sfs.pdf",
         # "panaroo_campylobacter/pangenome_merged/snps_core_gene_alignment.aln",
-        # "trees_stats_campylobacter/campylobacter_cluster_tree_stats.tsv",
         # expand(
         #     "trees_stats_campylobacter/campylobacter_cluster_{num}_{set}_cohort_hist.pdf",
         #     num=[1, 2, 4, 5, 6, 7, 8], set=['sb27', 'source']
         # ),
-        # "trees_stats_ccoli/ccoli_cluster_1000_pair_fst_wc.tsv",
-        # "trees_stats_cjejuni/cjejuni_cluster_1000_pair_fst_wc.tsv",
+        "trees_stats_cjejuni/cjejuni_cluster_tree_stats.tsv",
         expand(
             "trees_stats_{pathogen}/{pathogen}_cluster_1000_total_host_links.tsv",
             pathogen=['ccoli', 'cjejuni']
         ),
         expand(
-            "trees_stats_{pathogen}/{pathogen}_cluster_1000_treewas.pdf",
-            pathogen=['ccoli', 'cjejuni']
+            "trees_stats_cjejuni/cjejuni_cluster_1000_{set}_cohort_hist.pdf",
+            set=['sb27', 'source']
         ),
-        expand(
-            "abricate_vfdb_{pathogen}/{pathogen}_cluster_1000_report.tsv",
-            pathogen=['ccoli', 'cjejuni']
-        ),
-        expand(
-            "abricate_card_{pathogen}/{pathogen}_cluster_1000_report.tsv",
-            pathogen=['ccoli', 'cjejuni']
-        ),
+        # expand(
+        #     "trees_stats_{pathogen}/{pathogen}_cluster_1000_sw_fst.tsv",
+        #     pathogen=['ccoli', 'cjejuni']
+        # ),
 
 
 

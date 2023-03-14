@@ -220,7 +220,8 @@ def get_clusters_to_run(wildcards):
     ]
 
     clusters = ref_genomes["Cluster"].unique().tolist()
-    clusters.pop(0)
+    if len(clusters) > 1:
+        clusters.pop(0)
     if wildcards.pathogen == 'ecoli': # todo remove that
         clusters.pop(-1)
 
@@ -244,7 +245,7 @@ def population_host_metadata(pop_metadata):
     ruminant = ["Beef", "Bovine", "Sheep", "Goat", "Ovine/Goat"]
     avian = ["Chicken", "Avian", "Crow", "Poultry", "Turkey"]
     food = ["Food", "Dairy"]
-    swine = ["Pork", "Swine"]
+    swine = ["Pork", "Swine", "Pig"]
     other_mammal = ["Primate", "Rodent", "Deer", "Canine"]
     other = [
         "Soil",
@@ -255,6 +256,7 @@ def population_host_metadata(pop_metadata):
         "Laboratory",
         "Plant",
         "Animal-related",
+        "Environment"
     ]
 
     # assign trait value based on host organism/type

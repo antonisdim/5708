@@ -34,8 +34,8 @@ sw_fst_scan <- function(aln_rec_chr, tree_obj, pop_meta) {
 
     # define the parameters for the sliding window Fst
     aln <- read_aln(aln_rec_chr, tree_obj, sw = TRUE)
-    window_size <- 10000
-    overlap <- 9000
+    window_size <- 1000
+    overlap <- 900
     step <- window_size - overlap
 
     # starting sequence
