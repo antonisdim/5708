@@ -35,6 +35,7 @@ if os.path.isfile(OUT_GENOME_TABLE):
 
     include: "rules/outgroup.smk"
     include: "rules/tree_stats.smk"
+    include: "rules/trait_comparisons.smk"
     include: "rules/muttui.smk"
 
 
@@ -88,25 +89,26 @@ rule all:
         # "gatk_ecoli/ecoli_cluster_1000_sfs.pdf",
         # "panaroo_campylobacter/pangenome_merged/snps_core_gene_alignment.aln",
         # "panaroo_cjejuni/pangenome_merged/snps_core_gene_alignment.aln",
-        "clustering_cjejuni/summary_clusters_mlst_cjejuni_plus_contx.tsv",
-        "trees_cjejuni/cjejuni_cluster_1000_iq.treefile",
+        # "clustering_cjejuni/summary_clusters_mlst_cjejuni_plus_contx.tsv",
+        # "trees_cjejuni/cjejuni_cluster_1000_iq.treefile",
         # "trees_stats_cjejuni/cjejuni_cluster_tree_stats.tsv",
-        # "trees_stats_cjejuni/cjejuni_cluster_1000_heritability.tsv",
-        # "trees_stats_cjejuni/cjejuni_cluster_1000_treewas.pdf",
+        # "seqs_cjejuni/cjejuni_cluster_1000_seq_summary.tsv",
         # expand(
         #     "trees_stats_{pathogen}/{pathogen}_cluster_1000_total_host_links.tsv",
         #     pathogen=['ccoli', 'cjejuni']
         # ),
-        # expand(
-        #     "trees_stats_cjejuni/cjejuni_cluster_1000_{set}_cohort_hist.pdf",
-        #     set=['sb27', 'source']
-        # ),
+        expand(
+            "trees_stats_cjejuni/cjejuni_cluster_1000_{set}_cohort_hist.pdf",
+            set=[
+                "sb27",
+                "host",
+                "humans",
+                "americans",
+                "americans-time",
+                "america-all",
+            ],
+        ),
         # expand(
         #     "abricate_{db}_cjejuni/cjejuni_cluster_1000_report.tsv",
         #     db=['card', 'vfdb']
         # ),
-
-
-
-
-
