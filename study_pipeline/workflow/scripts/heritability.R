@@ -41,7 +41,7 @@ heritability_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) 
     setPop(genind_obj) <- ~ Trait
     
     # perform an amova analysis on the alignment
-    amova_res <- poppr.amova(genind_obj, ~ Trait)
+    amova_res <- poppr.amova(genind_obj, ~ Trait, cutoff = 0.1)
     
     # calculate n, m and H^2 based on http://ib.berkeley.edu/courses/ib162/Week4a.htm
     n = amova_res$results['Between samples', 'Df'] + 1

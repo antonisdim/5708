@@ -115,7 +115,7 @@ rule merge_panaroo_graphs:
     params:
         outdir=directory("panaroo_{pathogen}/pangenome_merged"),
     shell:
-        "(export OPENBLAS_NUM_THREADS=1 && "
+        "(export OPENBLAS_NUM_THREADS=1 && export OMP_NUM_THREADS=1 && "
         "panaroo-merge -d {input} -o {params.outdir} -t {threads}) 2> {log}"
 
 
