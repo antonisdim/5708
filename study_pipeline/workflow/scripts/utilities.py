@@ -8,13 +8,14 @@ __license__ = "MIT"
 
 import pandas as pd
 import csv
-import os
 
 SAMPLE_TABLE = "aux_files/samples.tsv"
 CONT_SAMPLE_TABLE = "aux_files/excluded_samples.tsv"
 LINEAGE_CONTX_TABLE = "aux_files/lineage_context_samples.tsv"
 REF_GENOME_TABLE = "aux_files/reference_genomes.tsv"
 OUT_GENOME_TABLE = "aux_files/outgroup_genomes.tsv"
+TIME_INTERVAL = 2
+CLOCK_RATE_TABLE = "aux_files/clock_rates.tsv"
 
 
 def read_sample_list():
@@ -154,7 +155,7 @@ def get_ref_genome(wildcards):
     ].to_list()[0]
 
 
-def genome_chromosome(taxon_fasta_idx):
+def genome_chromosome(taxon_fasta_idx, size=False):
     """Get the accession for the main chromosome"""
 
     faidx = pd.read_csv(
@@ -163,7 +164,10 @@ def genome_chromosome(taxon_fasta_idx):
         names=["Name", "Length", "Offset", "Linebases", "Linewidth"],
     )
 
-    chromosome = faidx.sort_values(by="Length", ascending=False).iloc[0, 0]
+    if size:
+        chromosome = faidx.sort_values(by="Length", ascending=False).iloc[0, 1]
+    else:
+        chromosome = faidx.sort_values(by="Length", ascending=False).iloc[0, 0]
 
     return chromosome
 
@@ -234,6 +238,20 @@ def get_ref_idx(wildcards):
     ref = get_ref_genome(wildcards)
 
     return f"refs/{wildcards.pathogen}/{ref}.fasta.gz.fai"
+
+
+def get_clock_rate(wildcards):
+    """Get a clock rate estimation for a given taxon"""  # todo optimise this
+
+    clock_rates = pd.read_csv(
+        CLOCK_RATE_TABLE, sep="\t", names=["Species", "Cluster", "Rate"]
+    )
+
+    return clock_rates.loc[
+        (clock_rates["Species"] == wildcards.pathogen)
+        & (clock_rates["Cluster"] == int(wildcards.cluster)),
+        "Rate",
+    ].to_list()[0]
 
 
 def population_host_metadata(pop_metadata):

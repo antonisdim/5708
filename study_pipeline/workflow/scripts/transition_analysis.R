@@ -14,6 +14,9 @@ all_out_table <- args[5]
 most_common_table <- args[6]
 state_sum_table <- args[7]
 state_tr_table <- args[8]
+clock <- as.numeric(args[9])
+genome_size <- as.numeric(args[10])
+time_interval <- as.numeric(args[11])
 
 # load libs
 library(igraph)
@@ -31,7 +34,10 @@ snp_dist_net <-
   function(snp_dist,
            tree_obj,
            pop_meta,
-           out_table) {
+           out_table,
+           clock,
+           genome_size,
+           time_interval) {
 
     # read the snp distance file
     ecoli_pwsnps <- read.csv(snp_dist, sep = '\t', header = TRUE)
@@ -104,17 +110,20 @@ snp_dist_net <-
       )) %>%
       mutate(host_link = paste(Taxon1_host, Taxon2_host, sep = "-"))
 
-    # create new df filtering out samples that aren't in the same trial area                                                  ##
+    # calculate the SNP cutoff for the samples belonging to the same transmission group - diveded by 2 because of colaescence
+    snp_cutoff <- round((clock * time_interval * genome_size) / 2)
+
+    # create new df filtering out samples that aren't in the same network and keep only the transmission pairs
     ecoli_pwsnps_decon_filtered_clusters <-
       ecoli_pwsnps_decon_filtered %>%
-      filter(!is.na(Taxon1_host)) %>%
-      filter(!is.na(Taxon2_host)) %>%
-      filter(!is.na(network_match)) %>%
-      filter(!grepl("Other", host_link))
+        filter(!is.na(Taxon1_host)) %>%
+        filter(!is.na(Taxon2_host)) %>%
+        filter(!is.na(network_match))
+    # filter(!grepl("Other", host_link))
 
     ecoli_pwsnps_decon_filtered_clusters_mini_pairs <-
       ecoli_pwsnps_decon_filtered_clusters %>%
-      filter(dist < 16)
+        filter(dist <= snp_cutoff)
 
     trans_summary <-
       ecoli_pwsnps_decon_filtered_clusters_mini_pairs %>% count(host_link, sort = TRUE)
@@ -137,14 +146,21 @@ transition_analysis <-
            all_out_table,
            most_common_table,
            state_sum_table,
-           state_tr_table) {
+           state_tr_table,
+           clock,
+           genome_size,
+           time_interval) {
+
 
     tree_obj <- read_tree(treefile, outgroup)
-    snp_dist_net(snp_file, tree_obj, pop_meta, all_out_table)
+    snp_dist_net(snp_file, tree_obj, pop_meta, all_out_table, clock, genome_size, time_interval)
 
     sample_meta_df <- population_host_metadata(pop_meta)
-    host_counts <- sample_meta_df %>% count(Trait, sort = TRUE) %>% arrange(n)
+    host_counts <- sample_meta_df %>%
+      count(Trait, sort = TRUE) %>%
+      arrange(n)
     subsample_num <- host_counts[2, c('n')]
+    print(host_counts)
 
     # hold the data to average over in these lists
     mean_state_time <- data.frame(matrix(ncol = nrow(sample_meta_df %>% count(Trait, sort = TRUE)) + 1, nrow = 0))
@@ -160,56 +176,55 @@ transition_analysis <-
     for (iter in 1:100) {
       out_table_iter <-
         paste(temp_dir,
-        "/",
-        sub('\\_pairsnp.tsv$', '', basename(snp_dist)),
-        "_iter_",
-        iter,
-        ".tsv",
-        sep = "")
+              "/",
+              sub('\\_pairsnp.tsv$', '', basename(snp_dist)),
+              "_iter_",
+              iter,
+              ".tsv",
+              sep = "")
 
       subsample_list <- list()
 
+      # subsample the initital dataframe based with nsample equal to the second least frequent host type
       for (host in unique(sample_meta_df$Trait)) {
-        host_count <- nrow(sample_meta_df[sample_meta_df$Trait == host, ])
+        host_count <- nrow(sample_meta_df[sample_meta_df$Trait == host,])
 
+        # here is we need this otherwise an error is raised for nsample for the least frequent host type
         if (host_count < subsample_num) {
-          nsample = host_count
+          nsample <- host_count
         } else {
-          nsample = subsample_num
+          nsample <- subsample_num
         }
-
+        print(nsample)
+        # do the actual subsampling and storing to a list
         host_subsample <-
-          sample_meta_df %>% filter(Trait == host) %>% sample_n(., nsample)
+          sample_meta_df %>%
+            filter(Trait == host) %>%
+            sample_n(., nsample)
         subsample_list[[host]] <- host_subsample
 
       }
 
+      # construct dataframe of the random set of samples
       subsample_df <- do.call(rbind, subsample_list)
 
+      # drop the outgroup
       to_drop <-
         tree_obj$tip.label[!tree_obj$tip.label %in% subsample_df$sample]
       subset_tree <- tree_obj
 
+      # prune the initial and keep only the samples that were randomly selected
       for (tip in to_drop) {
-        subset_tree <-
-          drop.tip(subset_tree,
-                   c(tip),
-                   rooted = TRUE,
-                   collapse.singles = TRUE)
-
-
+        subset_tree <- drop.tip(subset_tree, c(tip), rooted = TRUE, collapse.singles = TRUE)
       }
 
-      snp_dist_net(snp_file,
-                   subset_tree,
-                   pop_meta,
-                   out_table_iter)
-
+      # run the snp distance function
+      snp_dist_net(snp_file, subset_tree, pop_meta, out_table_iter, clock, genome_size, time_interval)
 
       char <- unlist(as.list(deframe(subsample_df[, c("sample", "Trait")])))
       char <- char[names(char) != "SRR10270781"]
 
-      # make the simmap and summarise it
+      # make the ACE simmap and summarise it
       stochastic_ace_tree <- make.simmap(subset_tree, char, model = "ER")
       ace_tree_sum <- describe.simmap(stochastic_ace_tree, plot = FALSE)
 
@@ -248,7 +263,8 @@ transition_analysis <-
       sep = '\t'
     )
 
-    unlink(temp_dir, recursive=TRUE)
+    # delete the temporary files
+    unlink(temp_dir, recursive = TRUE)
 
     # summarise the ancestral state reconstruction - create a table that holds the mean time spent on each state
     mean_state_time <- colMeans(setNames(mean_state_time, colnames(ace_tree_sum[["times"]])))
@@ -278,4 +294,4 @@ transition_analysis <-
 
 # run the function
 transition_analysis(snp_file, treefile, outgroup, pop_meta, all_out_table, most_common_table, state_sum_table,
-                    state_tr_table)
+                    state_tr_table, clock, genome_size, time_interval)

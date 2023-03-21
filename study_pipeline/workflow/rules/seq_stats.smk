@@ -78,7 +78,7 @@ rule aln_count:
     message:
         "Getting the alignment counts for {wildcards.sample} for {wildcards.pathogen}."
     conda:
-        "../envs/samtools.yaml"
+        "../envs/seq.yaml"
     shell:
         "printf '{wildcards.sample}\n' > {output.temp};"
         "seqtk seq -A {input.fastq} | grep -v '^>' | wc -l 1>> {output.temp}; "

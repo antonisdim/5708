@@ -6,7 +6,13 @@ __copyright__ = "Copyright 2021, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-from scripts.utilities import get_out_genome
+from scripts.utilities import (
+    get_out_genome,
+    genome_chromosome,
+    get_ref_idx,
+    get_clock_rate,
+    TIME_INTERVAL,
+)
 
 
 rule pairsnp:
@@ -39,11 +45,16 @@ rule transition_analysis:
         "Inferring host transition links for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
     params:
         out=lambda wildcards: get_out_genome(wildcards),
+        clock=lambda wildcards: get_clock_rate(wildcards),
+        genome_size=lambda wildcards: genome_chromosome(
+            get_ref_idx(wildcards), size=True
+        ),
     conda:
         "../envs/rgithub.yaml"
     shell:
         "(Rscript scripts/transition_analysis.R {input.snps} {input.tree} {params.out} {input.pop_meta} "
-        "{output.all_hosts} {output.boot_hosts} {output.anc_states} {output.anc_counts}) &> {log}"
+        "{output.all_hosts} {output.boot_hosts} {output.anc_states} {output.anc_counts} {params.clock} "
+        "{params.genome_size} {TIME_INTERVAL}) &> {log}"
 
 
 rule cohort_comparison:

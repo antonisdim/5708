@@ -1,5 +1,6 @@
 channels:
   - bioconda
 dependencies:
+  - samtools=1.14
   - seqkit=2.0.0
   - seqtk=1.3
