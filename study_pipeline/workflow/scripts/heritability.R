@@ -44,10 +44,10 @@ heritability_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) 
     amova_res <- poppr.amova(genind_obj, ~ Trait, cutoff = 0.1)
     
     # calculate n, m and H^2 based on http://ib.berkeley.edu/courses/ib162/Week4a.htm
-    n = amova_res$results['Between samples', 'Df'] + 1
-    m = (amova_res$results['Total', 'Df'] + 1) / n
+    n <- amova_res$results['Between samples', 'Df'] + 1
+    m <- (amova_res$results['Total', 'Df'] + 1) / n
     
-    broad_h = ((amova_res$results['Between samples', 'Mean Sq'] - amova_res$results['Within samples', 'Mean Sq']) /
+    broad_h <- ((amova_res$results['Between samples', 'Mean Sq'] - amova_res$results['Within samples', 'Mean Sq']) /
                  m) / amova_res$results['Total', 'Mean Sq']
     
     return(broad_h)

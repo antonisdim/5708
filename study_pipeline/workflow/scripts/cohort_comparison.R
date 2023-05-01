@@ -1,4 +1,4 @@
-# Title     : fst
+# Title     : cohort_comparison
 # Objective : Compare the euclidean distances of cohorts of samples
 # Created by: Evangelos A. Dimopoulos"
 # Created on: 02/01/2023

@@ -14,7 +14,7 @@ CONT_SAMPLE_TABLE = "aux_files/excluded_samples.tsv"
 LINEAGE_CONTX_TABLE = "aux_files/lineage_context_samples.tsv"
 REF_GENOME_TABLE = "aux_files/reference_genomes.tsv"
 OUT_GENOME_TABLE = "aux_files/outgroup_genomes.tsv"
-TIME_INTERVAL = 2
+TIME_INTERVAL = 4
 CLOCK_RATE_TABLE = "aux_files/clock_rates.tsv"
 
 

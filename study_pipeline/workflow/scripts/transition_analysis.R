@@ -48,11 +48,11 @@ snp_dist_net <-
     ecoli_pwsnps_idx <-
       ecoli_pwsnps_idx[, -which(names(ecoli_pwsnps_idx) %in% c("X", "X."))]
 
-    ecoli_pwsnps_decon <-
+    pwsnps_decon <-
       data.frame(t(combn(names(ecoli_pwsnps_idx), 2)), dist = t(ecoli_pwsnps_idx)[lower.tri(ecoli_pwsnps_idx)])
-    colnames(ecoli_pwsnps_decon) <- c("Taxon1", "Taxon2", "dist")
-    ecoli_pwsnps_decon$Taxon1 <-
-      gsub('# ', "", ecoli_pwsnps_decon$Taxon1)
+    colnames(pwsnps_decon) <- c("Taxon1", "Taxon2", "dist")
+    pwsnps_decon$Taxon1 <-
+      gsub('# ', "", pwsnps_decon$Taxon1)
 
     # read the corresponding tree, create a network out of it and then convert it to df
     tree_no_out <- tree_obj
@@ -72,25 +72,25 @@ snp_dist_net <-
       population_host_metadata(pop_meta)
 
     # match sample and host
-    ecoli_pwsnps_decon$Taxon1_host <-
-      sample_meta_df$Trait[match(ecoli_pwsnps_decon$Taxon1, sample_meta_df$sample)]
-    ecoli_pwsnps_decon$Taxon2_host <-
-      sample_meta_df$Trait[match(ecoli_pwsnps_decon$Taxon2, sample_meta_df$sample)]
+    pwsnps_decon$Taxon1_host <-
+      sample_meta_df$Trait[match(pwsnps_decon$Taxon1, sample_meta_df$sample)]
+    pwsnps_decon$Taxon2_host <-
+      sample_meta_df$Trait[match(pwsnps_decon$Taxon2, sample_meta_df$sample)]
 
     # match sample and trial area
-    ecoli_pwsnps_decon$Taxon1_area <-
-      sample_meta_df$Country[match(ecoli_pwsnps_decon$Taxon1, sample_meta_df$sample)]
-    ecoli_pwsnps_decon$Taxon2_area <-
-      sample_meta_df$Country[match(ecoli_pwsnps_decon$Taxon2, sample_meta_df$sample)]
+    pwsnps_decon$Taxon1_area <-
+      sample_meta_df$Country[match(pwsnps_decon$Taxon1, sample_meta_df$sample)]
+    pwsnps_decon$Taxon2_area <-
+      sample_meta_df$Country[match(pwsnps_decon$Taxon2, sample_meta_df$sample)]
 
     # match sample and network_id
-    ecoli_pwsnps_decon$Taxon1_network <-
-      network_phylo$network_id[match(ecoli_pwsnps_decon$Taxon1, network_phylo$sample)]
-    ecoli_pwsnps_decon$Taxon2_network <-
-      network_phylo$network_id[match(ecoli_pwsnps_decon$Taxon2, network_phylo$sample)]
+    pwsnps_decon$Taxon1_network <-
+      network_phylo$network_id[match(pwsnps_decon$Taxon1, network_phylo$sample)]
+    pwsnps_decon$Taxon2_network <-
+      network_phylo$network_id[match(pwsnps_decon$Taxon2, network_phylo$sample)]
 
     # create new df with columns for area_match and host_match to help with separating and filtering data for plots
-    ecoli_pwsnps_decon_filtered <- ecoli_pwsnps_decon %>%
+    pwsnps_decon_filtered <- pwsnps_decon %>%
       filter(Taxon1_area != "Unknown" &
                Taxon2_area != "Unknown") %>%
       mutate(area_match = ifelse(
@@ -112,21 +112,22 @@ snp_dist_net <-
 
     # calculate the SNP cutoff for the samples belonging to the same transmission group - diveded by 2 because of colaescence
     snp_cutoff <- round((clock * time_interval * genome_size) / 2)
-
+    print(snp_cutoff)
     # create new df filtering out samples that aren't in the same network and keep only the transmission pairs
-    ecoli_pwsnps_decon_filtered_clusters <-
-      ecoli_pwsnps_decon_filtered %>%
+    pwsnps_decon_filtered_clusters <-
+      pwsnps_decon_filtered %>%
         filter(!is.na(Taxon1_host)) %>%
         filter(!is.na(Taxon2_host)) %>%
         filter(!is.na(network_match))
     # filter(!grepl("Other", host_link))
 
-    ecoli_pwsnps_decon_filtered_clusters_mini_pairs <-
-      ecoli_pwsnps_decon_filtered_clusters %>%
-        filter(dist <= snp_cutoff)
+    pwsnps_decon_filtered_clusters_mini_pairs <-
+      pwsnps_decon_filtered_clusters %>%
+        filter(dist <= snp_cutoff) %>%
+        filter(network_match == "Same Transmission Cluster")
 
     trans_summary <-
-      ecoli_pwsnps_decon_filtered_clusters_mini_pairs %>% count(host_link, sort = TRUE)
+      pwsnps_decon_filtered_clusters_mini_pairs %>% count(host_link, sort = TRUE)
 
     write.table(
       trans_summary,
@@ -160,7 +161,6 @@ transition_analysis <-
       count(Trait, sort = TRUE) %>%
       arrange(n)
     subsample_num <- host_counts[2, c('n')]
-    print(host_counts)
 
     # hold the data to average over in these lists
     mean_state_time <- data.frame(matrix(ncol = nrow(sample_meta_df %>% count(Trait, sort = TRUE)) + 1, nrow = 0))
@@ -195,7 +195,7 @@ transition_analysis <-
         } else {
           nsample <- subsample_num
         }
-        print(nsample)
+
         # do the actual subsampling and storing to a list
         host_subsample <-
           sample_meta_df %>%
