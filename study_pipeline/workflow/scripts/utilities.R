@@ -21,10 +21,10 @@ read_tree <- function(tree_file, outgroup) {
 }
 
 
-read_aln <- function(aln_file, tree_r_no_out, sw = FALSE) {
+read_aln <- function(aln_file, set_no_out, sw = FALSE, tree = TRUE) {
   # read data from file:
   dna <- read.dna(file = aln_file, format = "fasta", as.matrix = TRUE)
-  dna <- dna[tree_r_no_out$tip.label,]
+  dna <- if (tree) dna[set_no_out$tip.label,] else dna[!rownames(dna) %in% c(set_no_out),]
 
   # convert dna to genid and get the nucleotide matrix
   genid_obj <- DNAbin2genind(dna)

@@ -58,34 +58,38 @@ rule get_chromosome_snps_nrec_aln:
         "(snp-sites -m -o {output} {input})"
 
 
-# todo correct uneven sample sizes - maybe bonferroni correction
-rule distances:
+def get_aln_file(wildcards):
+    """Get the right aln file for the corresponding summary statistic"""
+
+    if wildcards.metric == "swfst":
+        input_path = f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln.fasta"
+    else:
+        if wildcards.rec == "rec":
+            input_path = f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_snps.fasta"
+        else:
+            input_path = f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_nrec_snps.fasta"
+
+    return input_path
+
+
+rule pop_gen_stats:
     input:
-        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
-        aln_rec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta",
-        aln_nrec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
-        aln_rec_chr="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln.fasta",
+        aln_file=get_aln_file,
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
-        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_fst.log",
+        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{rec}_{metric}.log",
     output:
-        sum_table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_sum_fst.tsv",
-        pair_wc="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pair_fst_wc.tsv",
-        dist_nei="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_dist_nei.tsv",
-        sw_fst="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_sw_fst.tsv",
+        stat_table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{rec}_{metric}.tsv",
     message:
-        "Calucluate Nei's and Weir and Cockerham's Fst (pairwise and total) and Nei's genetic distance for "
-        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}, "
-        "before and after removing recombinant regions. Also we are doing a sliding window pairwise WC Fst scan "
-        "across the genome after removing recombination."
+        "Calucluating the {wildcards.metric} summary statistic for {wildcards.pathogen} {wildcards.population} "
+        "{wildcards.cluster} with {wildcards.rec} regions."
     conda:
         "../envs/rgithub.yaml"
     params:
         out=lambda wildcards: get_out_genome(wildcards),
     shell:
-        "(Rscript scripts/distances.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
-        "{input.aln_rec_chr} {input.pop_meta} {output.sum_table} {output.pair_wc} {output.dist_nei} "
-        "{output.sw_fst}) &> {log}"
+        "(Rscript scripts/pop_gen_stats.R {params.out} {input.aln_file} {input.pop_meta} {wildcards.metric} "
+        "{output.stat_table}) &> {log}"
 
 
 rule heritability:
