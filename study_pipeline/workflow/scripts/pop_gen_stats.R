@@ -84,12 +84,14 @@ sw_fst_scan <- function(aln_rec_chr, outgroup, pop_meta) {
 # hierfstat function
 hierfstat_calculate <- function(outgroup, dna_obj, pop_meta, metric) {
 
-    # load traits
+    # load traits IN THE CORRECT ORDER - same order as the dna_obj
     pop_trait <- pop_meta[pop_meta$sample %in% indNames(dna_obj[indNames(dna_obj) != outgroup]),]
-    phen_cat <- setNames(pop_trait$Trait, pop_trait$sample)
+    pop_trait <- pop_trait[match(indNames(dna_obj), pop_trait$sample),]
+    strata(dna_obj) <- pop_trait[, c("Trait", "Host", "Source")]
+    setPop(dna_obj) <- ~ Trait
 
     # convert genind object to hierfstat input
-    hierfstat_input <- genind2hierfstat(dna_obj, pop=phen_cat)
+    hierfstat_input <- genind2hierfstat(dna_obj)
 
     # if sw or pairwise fst only calculate WC's pairwise Fst otherwise get the right metric
     if (metric == 'dxy') {
@@ -140,7 +142,7 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
             append=TRUE)
     } else if (metric == 'fst') {
         # check if the alignment has recombinant sites masked
-        rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination" #todo fix
+        rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
         fst_res <- as.data.frame(t(c(rec_state, res_dist[[1]])))
         names(fst_res) <- c("Rec state", "Nei's Fst", "WC's Fst")
 

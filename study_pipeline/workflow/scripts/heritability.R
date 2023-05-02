@@ -34,9 +34,10 @@ heritability_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) 
     # read file with population metadata
     pop_meta <- population_host_metadata(pop_metadata)
     
-    # load traits and define the population strata
+    # load traits and define the population strata IN THE CORRECT ORDER - same order as in the genind object
     pop_trait <-
       pop_meta[pop_meta$sample %in% tree_r_no_out$tip.label, ]
+    pop_trait <- pop_trait[match(indNames(genind_obj), pop_trait$sample),]
     strata(genind_obj) <- pop_trait[, c("Trait", "Host", "Source")]
     setPop(genind_obj) <- ~ Trait
     

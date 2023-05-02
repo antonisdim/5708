@@ -97,7 +97,8 @@ rule all:
         #     "trees_stats_{pathogen}/{pathogen}_cluster_1000_total_host_links.tsv",
         #     pathogen=['cjejuni']
         # ),
-        "trees_stats_cjejuni/cjejuni_cluster_1000_rec_swfst.tsv",
+        # "trees_stats_cjejuni/cjejuni_cluster_1000_rec_swfst.tsv",
+        "trees_stats_cjejuni/cjejuni_cluster_1000_heritability.tsv",
         expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_fst.tsv", rec=['nrec', 'rec']),
         expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_pairfst.tsv", rec=['nrec', 'rec']),
         expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_dxy.tsv", rec=['nrec', 'rec']),
