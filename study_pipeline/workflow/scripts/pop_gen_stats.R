@@ -45,7 +45,7 @@ sw_fst_scan <- function(aln_rec_chr, outgroup, pop_meta) {
         chunk <- DNAbin2genind(aln[,start:end])
         chunk_res <- list(NULL, NULL, NULL)
         # if the segment has either samples where all the positions are NA or they are monomorphic then this will fail
-        tryCatch({chunk_res <- hierfstat_calculate(tree_obj, chunk, pop_meta, sw = TRUE)},
+        tryCatch({chunk_res <- hierfstat_calculate(outgroup, chunk, pop_meta, "swfst")},
             error= function(e) {cat("ERROR :",conditionMessage(e), "\n",
             "Fst cannot be calculated for that region. There is either too much missing data or no polymorphic positions.",
             "\n")})
