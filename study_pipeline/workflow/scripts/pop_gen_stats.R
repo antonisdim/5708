@@ -23,15 +23,45 @@ library(reshape2)
 # read the utility functions
 source("scripts/utilities.R")
 
-# sliding window function
+# define the parameters for the sliding window scans
+window_size <- 1000
+overlap <- 900
+step <- window_size - overlap
 
+# sliding window Tajima D function
+sw_tajima_d_scan <- function(aln_rec_chr, outgroup, pop_meta) {
+
+    # read the alignment for the sliding window Fst
+    aln <- read_aln(aln_rec_chr, outgroup, sw = TRUE, tree = FALSE)
+
+    # starting sequence
+    starts <- if (dim(aln)[2] > window_size) seq(1, dim(aln)[2], by = step) else seq(1:1)
+    n <- length(starts)
+    tajima_d_df <- data.frame(matrix(ncol = 2, nrow = 0))
+
+    # start the SW
+    for (i in 1:n) {
+        start <- if (length(starts) > 1) (starts[i]) else 1
+        end <- if ((start + step - 1) < dim(aln)[2]) (start + step - 1) else dim(aln)[2]
+        chunk <- aln[,start:end]
+        genome_bin <- if (length(starts) > 1) (starts[i]) else 1
+
+        for (pop in unique(pop_meta$Trait)) {
+            d <- tajima.test(chunk[pop_meta[pop_meta$Trait == pop,'sample'],])$D
+            tajima_d_df <- rbind.data.frame(tajima_d_df, c(pop, round(d, 2), genome_bin))
+        }
+        names(tajima_d_df) <- c('Population', 'Tajima D', 'Bin')
+        # store an Fst matrix if successful, otherwise store NULL
+     }
+
+    return(tajima_d_df)
+}
+
+# sliding window WC Fst function
 sw_fst_scan <- function(aln_rec_chr, outgroup, pop_meta) {
 
-    # define the parameters for the sliding window Fst
+    # read the alignment for the sliding window Fst
     aln <- read_aln(aln_rec_chr, outgroup, sw = TRUE, tree = FALSE)
-    window_size <- 1000
-    overlap <- 900
-    step <- window_size - overlap
 
     # starting sequence
     starts <- if (dim(aln)[2] > window_size) seq(1, dim(aln)[2], by = step) else seq(1:1)
@@ -130,6 +160,8 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
     if (metric == 'swfst') {
         # run sliding window fst scan across the genome
         res_dist <- sw_fst_scan(aln_file, outgroup, pop_meta)
+    } else if (metric == 'tajima') {
+        res_dist <- sw_tajima_d_scan(aln_file, outgroup, pop_meta)
     } else {
         # distance results for a given alignment - order (Nei and WC total Fst, WC pair Fst, Nei' Dxy
         res_dist <- hierfstat_calculate(outgroup, read_aln(aln_file, outgroup, tree = FALSE), pop_meta, metric)
@@ -140,6 +172,9 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         # write Nei's Ds output table
         write.table(as.matrix(res_dist[[3]]), file=output_table, quote=FALSE, row.names=TRUE, sep="\t",
             append=TRUE)
+    } else if (metric == 'tajima') {
+        # write the SW tajima D scan results
+        write.table(res_dist, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
     } else if (metric == 'fst') {
         # check if the alignment has recombinant sites masked
         rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
