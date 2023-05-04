@@ -61,7 +61,7 @@ rule get_chromosome_snps_nrec_aln:
 def get_aln_file(wildcards):
     """Get the right aln file for the corresponding summary statistic"""
 
-    if wildcards.metric == "swfst":
+    if (wildcards.metric == "swfst") or (wildcards.metric == "tajima"):
         input_path = f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln.fasta"
     else:
         if wildcards.rec == "rec":

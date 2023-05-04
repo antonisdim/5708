@@ -37,7 +37,7 @@ sw_tajima_d_scan <- function(aln_rec_chr, outgroup, pop_meta) {
     # starting sequence
     starts <- if (dim(aln)[2] > window_size) seq(1, dim(aln)[2], by = step) else seq(1:1)
     n <- length(starts)
-    tajima_d_df <- data.frame(matrix(ncol = 2, nrow = 0))
+    tajima_d_df <- data.frame(matrix(ncol = 3, nrow = 0))
 
     # start the SW
     for (i in 1:n) {
