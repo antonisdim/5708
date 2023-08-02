@@ -133,8 +133,11 @@ rule get_core_msa:
         "../envs/panaroo.yaml"
     params:
         outdir="panaroo_{pathogen}/pangenome_merged",
+        core_thresh=0.99,
     shell:
-        "(panaroo-msa -o {params.outdir} -a core --aligner mafft --core_threshold 0.98 -t {threads}) 2> {log}"
+        "(export OPENBLAS_NUM_THREADS=1 && export OMP_NUM_THREADS=1 && "
+        "panaroo-msa -o {params.outdir} -a core --aligner mafft "
+        "--core_threshold {params.core_thresh} -t {threads}) 2> {log}"
 
 
 rule snp_core_aln:

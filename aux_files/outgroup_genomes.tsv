@@ -1,23 +1,40 @@
 Species	Cluster	ST	Strain	Accession	Paper
 ecoli	1000	131	EC958	GCF_000285655.3	PROVISIONAL
-ecoli	21	428_related	APEC_O78	GCF_000332755.1	https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-3289-7#Sec2
-ecoli	23	1434	311962	GCA_014426305.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	16	372	upec-239	GCF_000778275.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	19	38	blood-10-180	GCF_000779975.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	14	117	FDAARGOS_1286	GCF_016903375.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_016903375.1
-ecoli	2	117	FDAARGOS_1286	GCF_016903375.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_016903375.1
-ecoli	29	1434	311962	GCA_014426305.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	8	117	FDAARGOS_1286	GCF_016903375.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_016903375.1
-ecoli	10	127	536	GCF_000013305.1	https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0101547#s2
-ecoli	18	648	WP4-S18-ESBL-09	GCF_014169175.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_014169175.1
-ecoli	13	69	CFSAN061770	GCF_002278115.2	https://www.sciencedirect.com/science/article/pii/S1567134818306312
-ecoli	28	117	FDAARGOS_1286	GCF_016903375.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_016903375.1
-ecoli	20	11	EC4115	GCF_000021125.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	27	11	EC4115	GCF_000021125.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	24	11	EC4115	GCF_000021125.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	7	11	EC4115	GCF_000021125.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
-ecoli	3	117	FDAARGOS_1286	GCF_016903375.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_016903375.1
-ecoli	11	11	EC4115	GCF_000021125.1	https://www.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000499
+ecoli	1	345	cq9	SB279408396	The outgroup is from cluster 32
+ecoli	2	345	cq9	SB279407238	The outgroup is from cluster 19
+ecoli	3	345	cq9	SB279407238	The outgroup is from cluster 19
+ecoli	4	345	cq9	SB279408396	The outgroup is from cluster 32
+ecoli	5	345	cq9	SB2710442022	The outgroup is from cluster 29
+ecoli	6	23	NC19	SB279407331	The outgroup is from cluster 16
+ecoli	7	23	NC19	SB279407331	The outgroup is from cluster 16
+ecoli	8	345	cq9	SRR8157253	The outgroup is from cluster 33
+ecoli	9	372	upec-239	SB278790830	The outgroup is from cluster 34
+ecoli	10	23	NC19	SB279407331	The outgroup is from cluster 16
+ecoli	11	345	cq9	SB2710442022	The outgroup is from cluster 29
+ecoli	12	602	fEC.1	SB279408483	The outgroup is from cluster 35
+ecoli	13	345	cq9	SB2713433399	The outgroup is from cluster 6
+ecoli	14	372	upec-239	SB278790830	The outgroup is from cluster 34
+ecoli	15	602	fEC.1	SB279408483	The outgroup is from cluster 35
+ecoli	16	345	cq9	SB2710442022	The outgroup is from cluster 29
+ecoli	17	372	upec-239	SB278790830	The outgroup is from cluster 34
+ecoli	18	345	cq9	SB279408396	The outgroup is from cluster 32
+ecoli	19	117	FDAARGOS_1286	SB2710442392	The outgroup is from cluster 20
+ecoli	20	648	WP4-S18-ESBL-09	SB2710445522	The outgroup is from cluster 28
+ecoli	21	372	upec-239	SB278790830	The outgroup is from cluster 34
+ecoli	22	127	536	SB278791107	The outgroup is from cluster 14
+ecoli	23	345	cq9	SB2710441956	The outgroup is from cluster 27
+ecoli	24	345	cq9	SB279408396	The outgroup is from cluster 32
+ecoli	25	602	fEC.1	SB279408483	The outgroup is from cluster 35
+ecoli	26	345	cq9	SB279407238	The outgroup is from cluster 19
+ecoli	27	345	cq9	SB2710442022	The outgroup is from cluster 29
+ecoli	28	69	CFSAN061770	SB2711672613	The outgroup is from cluster 24
+ecoli	29	648	WP4-S18-ESBL-09	SB2710445522	The outgroup is from cluster 28
+ecoli	30	345	cq9	SB2710442084	The outgroup is from cluster 31
+ecoli	31	1434	CFSAN051542	SB2710445935	The outgroup is from cluster 8
+ecoli	32	345	cq9	SB279407112	The outgroup is from cluster 1
+ecoli	33	399	2273-PO3	SB278791230	The outgroup is from cluster 23
+ecoli	34	117	FDAARGOS_1286	SB2710442392	The outgroup is from cluster 20
+ecoli	35	345	cq9	SB2710442022	The outgroup is from cluster 29
 campylobacter	1000	827	OR12	GCF_002024185.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_002024185.1/
 campylobacter	1	8	IA3902	GCF_000025425.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_000025425.1/
 campylobacter	2	8	IA3902	GCF_000025425.1	https://www.ncbi.nlm.nih.gov/assembly/GCF_000025425.1/

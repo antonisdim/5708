@@ -48,12 +48,15 @@ rule all:
         # "panaroo_ecoli/pangenome_merged/core_gene_alignment.aln",
         # "panaroo_ecoli/pangenome_merged/snps_core_gene_alignment.aln",
         # "clustering_ecoli/summary_clusters_mlst_ecoli_plus_contx.tsv",
-        # expand("seqs_ecoli/ecoli_cluster_{num}_seq_summary.tsv", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
+        expand(
+            "seqs_ecoli/ecoli_cluster_{num}_seq_summary.tsv",
+            num=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+        ),
         # expand("gatk_ecoli/ecoli_cluster_{num}_SNP_filter_table.tsv", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
         # expand("gatk_ecoli/ecoli_cluster_{num}_sfs.pdf", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
         # expand(
         #     "trees_ecoli/ecoli_cluster_{num}_iq.treefile",
-        #     num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29],
+        #     num=[1],
         # ),
         # "trees_ecoli/ecoli_population_21_iq.treefile",
         # "aux_files/github_r.done",
@@ -97,8 +100,8 @@ rule all:
         #     "trees_stats_{pathogen}/{pathogen}_cluster_1000_total_host_links.tsv",
         #     pathogen=['cjejuni']
         # ),
-        "trees_stats_cjejuni/cjejuni_cluster_1000_rec_swfst.tsv",
-        "trees_stats_cjejuni/cjejuni_cluster_1000_rec_tajima.tsv",
+        # "trees_stats_cjejuni/cjejuni_cluster_1000_rec_swfst.tsv",
+        # "trees_stats_cjejuni/cjejuni_cluster_1000_rec_tajima.tsv",
         # "trees_stats_cjejuni/cjejuni_cluster_1000_heritability.tsv",
         # expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_fst.tsv", rec=['nrec', 'rec']),
         # expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_pairfst.tsv", rec=['nrec', 'rec']),
@@ -116,5 +119,5 @@ rule all:
         # ),
         # expand(
         #     "abricate_{db}_cjejuni/cjejuni_cluster_1000_report.tsv",
-        #     db=['card', 'vfdb']
+        #     db=['card', 'vfdb', 'argannot', 'megares', 'ncbi', 'plasmidfinder', 'resfinder']
         # ),
