@@ -17,6 +17,7 @@ read_tree <- function(tree_file, outgroup) {
   tree <- read.tree(file = tree_file)
   tree_r <- root(tree, outgroup = outgroup, edgelabel = TRUE)
   tree_r_no_out <- drop.tip(tree_r, c(outgroup), rooted = TRUE, collapse.singles = TRUE)
+  cat("The number of tips in the tree is: ", length(tree_r_no_out$tip.label))
   return(tree_r_no_out)
 }
 
@@ -25,6 +26,8 @@ read_aln <- function(aln_file, set_no_out, sw = FALSE, tree = TRUE) {
   # read data from file:
   dna <- read.dna(file = aln_file, format = "fasta", as.matrix = TRUE)
   dna <- if (tree) dna[set_no_out$tip.label,] else dna[!rownames(dna) %in% c(set_no_out),]
+  cat("The number of samples in the alignment is: ", dim(dna)[1])
+  cat("the total length of the alignment is: ", dim(dna)[2])
 
   # convert dna to genid and get the nucleotide matrix
   genid_obj <- DNAbin2genind(dna)

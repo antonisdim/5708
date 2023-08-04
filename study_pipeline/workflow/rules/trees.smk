@@ -96,9 +96,18 @@ rule get_chromosome_snps_aln:
         "(snp-sites -m -o {output} {input})"
 
 
+def get_iq_tree_aln(wildcards):
+    """Get the correct alignment for the iqtree - basically if it is cluster 1000 get the non rec snps"""
+
+    if wildcards.cluster != "1000":
+        return f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_nrec_snps.fasta"
+    else:
+        return f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_snps.fasta"
+
+
 rule run_iq_gtr_gamma:
     input:
-        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+        get_iq_tree_aln,
     log:
         "trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.log",
     output:
