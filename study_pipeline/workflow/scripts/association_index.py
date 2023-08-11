@@ -13,6 +13,7 @@ import statistics
 
 from Bio import Phylo as p
 from collections import Counter
+from decimal import *
 
 from utilities import population_host_metadata
 
@@ -57,9 +58,9 @@ def calculate_clade_association_index(phylogeny, pop_meta_df, real_data=True):
 
         # Calculate the association index of the clade
         clade_association_index = (
-            1.0 - (float(maximum_frequency) / float(tip_number))
-        ) / ((2.0 ** float(tip_number)) - 1)
-        association_index += clade_association_index
+            Decimal(1.0) - (Decimal(maximum_frequency) / Decimal(tip_number))
+        ) / ((Decimal(2.0) ** Decimal(tip_number)) - 1)
+        association_index += float(clade_association_index)
 
     return association_index
 

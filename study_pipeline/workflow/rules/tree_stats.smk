@@ -87,6 +87,8 @@ rule pop_gen_stats:
         "../envs/rgithub.yaml"
     params:
         out=lambda wildcards: get_out_genome(wildcards),
+    wildcard_constraints:
+        rec="(rec|nrec)",
     shell:
         "(Rscript scripts/pop_gen_stats.R {params.out} {input.aln_file} {input.pop_meta} {wildcards.metric} "
         "{output.stat_table}) &> {log}"
@@ -134,7 +136,7 @@ rule association_index:
         boot=1000,
     shell:
         "(python scripts/association_index.py --tree {input.tree} --boot {params.boot} "
-        "--meta {input.pop_meta} --outgroup {params.out} --outfile {output}) 2> {log}"
+        "--meta {input.pop_meta} --outgroup {params.out} --outfile {output}) &> {log}"
 
 
 def get_cluster_treewas(wildcards):
