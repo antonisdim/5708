@@ -154,3 +154,11 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
   eucd_melted$dist <- dist_type
   return(eucd_melted)
 }
+
+
+big_exponent_limits <- function(x) {
+  # set too big or too small numbers to 1.e308 or -1.e308
+  x[x > 1e+308] <- 1e+308
+  x[x < 1e-308] <- 1e-308
+  return(x)
+}

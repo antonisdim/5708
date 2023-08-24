@@ -80,8 +80,8 @@ cohort_comparison <- function(tree_file, outgroup, aln_file, pop_metadata, hist_
   ggsave(hist_out_figure, eucd_comparison_histogram, width = 12, height = 12)
 
   #calculate the harmonic mean of the p-values from each iteration
-  pval_total_vector <- c("total", p.hmp(pvalues_df$Welch_pvalue, w = NULL),
-                         p.hmp(pvalues_df$Wilcox_pvalue, w = NULL))
+  pval_total_vector <- c("total", p.hmp(big_exponent_limits(pvalues_df$Welch_pvalue), w = NULL, L = 100),
+                         p.hmp(big_exponent_limits(pvalues_df$Wilcox_pvalue), w = NULL, L = 100))
   pvalues_df[nrow(pvalues_df) + 1,] <- pval_total_vector
 
   write.table(pvalues_df, file = pval_out_table, quote = FALSE, row.names = FALSE, sep = "\t")
