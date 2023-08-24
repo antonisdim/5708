@@ -107,6 +107,33 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
     set_2 <- "American_context"
     meta_set1 <- meta[meta$Dataset == set_1,]
     meta_set2 <- meta[(meta$Dataset == "Context") & (meta$continent == "North America"),]
+  } else if (cohort == 'narms-2019') {
+    set_1 <- "Cali_NARMS_2019"
+    set_2 <- "Rest_USA_NARMS_2019"
+    meta_set1 <- meta[(meta$Dataset == "Context") &
+                        (meta$year == 2019) &
+                        (meta$Country == "USA") &
+                        (meta$State == "USA:CA"),]
+    meta_set2 <- meta[(meta$Dataset == "Context") &
+                        (meta$year == 2019) &
+                        (meta$Country == "USA") &
+                        !(meta$State %in% c("USA:CA", "")),]
+  } else if (cohort == 'sb27-cali-narms') {
+    set_1 <- "SB27"
+    set_2 <- "Cali_NARMS_2019"
+    meta_set1 <- meta[meta$Dataset == set_1,]
+    meta_set2 <- meta[(meta$Dataset == "Context") &
+                        (meta$year == 2019) &
+                        (meta$Country == "USA") &
+                        (meta$State == "USA:CA"),]
+  } else if (cohort == 'sb27-rest-narms') {
+    set_1 <- "SB27"
+    set_2 <- "Rest_USA_NARMS_2019"
+    meta_set1 <- meta[meta$Dataset == set_1,]
+    meta_set2 <- meta[(meta$Dataset == "Context") &
+                        (meta$year == 2019) &
+                        (meta$Country == "USA") &
+                        !(meta$State %in% c("USA:CA", "")),]
   } else {
     stop("Options for this sample cohort haven't been coded yet. Either use sb27 or source.")
   }

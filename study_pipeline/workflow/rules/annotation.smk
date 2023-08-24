@@ -55,7 +55,7 @@ rule run_prokka:
         "       --force -prefix {wildcards.accession} "
         "       --addgenes "
         "       --centre Sanger "
-        "       --compliant"
+        "       --compliant "
         "       --kingdom Bacteria "
         "       --gcode 11 "
         "       --cpus {threads} "

@@ -48,16 +48,27 @@ rule all:
         # "panaroo_ecoli/pangenome_merged/core_gene_alignment.aln",
         # "panaroo_ecoli/pangenome_merged/snps_core_gene_alignment.aln",
         # "clustering_ecoli/summary_clusters_mlst_ecoli_plus_contx.tsv",
-        expand(
-            "seqs_ecoli/ecoli_cluster_{num}_seq_summary.tsv",
-            num=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-        ),
-        # expand("gatk_ecoli/ecoli_cluster_{num}_SNP_filter_table.tsv", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
-        # expand("gatk_ecoli/ecoli_cluster_{num}_sfs.pdf", num=[21, 23, 16, 19, 14, 2, 8, 10, 18, 13, 28, 20, 27, 24, 7, 3, 11, 29]),
+        # expand(
+        #     "seqs_ecoli/ecoli_cluster_{num}_seq_summary.tsv",
+        #     num=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        #          21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+        # ),
         # expand(
         #     "trees_ecoli/ecoli_cluster_{num}_iq.treefile",
-        #     num=[1],
+        #     num=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        #          21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
         # ),
+        # expand(
+        #     "trees_stats_ecoli/ecoli_cluster_{num}_heritability.tsv",
+        #     num=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        #          21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+        # ),
+        # expand(
+        #     "trees_stats_ecoli/ecoli_cluster_{num}_assoc_idx.tsv",
+        #     num=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        #          21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+        # ),
+        "seqs_ecoli/ecoli_cluster_1000_seq_summary.tsv",
         # "trees_ecoli/ecoli_population_21_iq.treefile",
         # "aux_files/github_r.done",
         # "trees_stats_ecoli/ecoli_cluster_tree_stats.tsv",
@@ -106,17 +117,20 @@ rule all:
         # expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_fst.tsv", rec=['nrec', 'rec']),
         # expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_pairfst.tsv", rec=['nrec', 'rec']),
         # expand("trees_stats_cjejuni/cjejuni_cluster_1000_{rec}_dxy.tsv", rec=['nrec', 'rec']),
-        # expand(
-        #     "trees_stats_cjejuni/cjejuni_cluster_1000_{set}_cohort_hist.pdf",
-        #     set=[
-        #         "sb27",
-        #         "host",
-        #         "humans",
-        #         "americans",
-        #         "americans-time",
-        #         "america-all",
-        #     ],
-        # ),
+        expand(
+            "trees_stats_cjejuni/cjejuni_cluster_1000_{set}_cohort_hist.pdf",
+            set=[
+                "sb27",
+                "host",
+                "humans",
+                "americans",
+                "americans-time",
+                "america-all",
+                "narms-2019",
+                "sb27-cali-narms",
+                "sb27-rest-narms",
+            ],
+        ),
         # expand(
         #     "abricate_{db}_cjejuni/cjejuni_cluster_1000_report.tsv",
         #     db=['card', 'vfdb', 'argannot', 'megares', 'ncbi', 'plasmidfinder', 'resfinder']
