@@ -129,7 +129,9 @@ rule run_iq_gtr_gamma:
     resources:
         mem_gb=138,
     shell:
-        "(iqtree2 -s {input} -m GTR+F+G -T {threads} -t PARS -B 1000 --prefix {params.prefix} "
+        "(const_sites=$(snp-sites -C {input}) && "
+        "iqtree2 -s {input} -m GTR+F+G -fconst $const_sites -T {threads} "
+        "-t PARS -B 1000 --prefix {params.prefix} "
         "--mem {resources.mem_gb}G) 2> {log}"
 
 

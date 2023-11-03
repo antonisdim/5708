@@ -60,7 +60,6 @@ rule transition_analysis:
 rule cohort_comparison:
     input:
         aln="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
-        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{set}_cohort_comparison.log",
@@ -75,5 +74,5 @@ rule cohort_comparison:
     conda:
         "../envs/rgithub.yaml"
     shell:
-        "(Rscript scripts/cohort_comparison.R {input.tree} {params.outgroup} {input.aln} {input.pop_meta} "
+        "(Rscript scripts/cohort_comparison.R {params.outgroup} {input.aln} {input.pop_meta} "
         "{output.histogram} {output.pvalues} {wildcards.set}) &> {log}"

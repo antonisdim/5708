@@ -31,7 +31,7 @@ step <- window_size - overlap
 # sliding window Tajima D function
 sw_tajima_d_scan <- function(aln_rec_chr, outgroup, pop_meta) {
 
-    # read the alignment for the sliding window Fst
+    # read the alignment for the sliding window Tajima D
     aln <- read_aln(aln_rec_chr, outgroup, sw = TRUE, tree = FALSE)
 
     # starting sequence
@@ -154,13 +154,18 @@ hierfstat_calculate <- function(outgroup, dna_obj, pop_meta, metric) {
 pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_table) {
 
     # read file with population metadata
-    pop_meta <- population_host_metadata(pop_metadata)
+    if (metric == 'swfst-human' | metric == 'tajima-human') {
+        # the trait is human focused
+        pop_meta <- population_host_metadata(pop_metadata, host = FALSE, humans = TRUE)
+    } else {
+        pop_meta <- population_host_metadata(pop_metadata)
+    }
 
     # run the actual pop gen stats calculation
-    if (metric == 'swfst') {
+    if (metric == 'swfst' | metric == 'swfst-human') {
         # run sliding window fst scan across the genome
         res_dist <- sw_fst_scan(aln_file, outgroup, pop_meta)
-    } else if (metric == 'tajima') {
+    } else if (metric == 'tajima' | metric == 'tajima-human') {
         res_dist <- sw_tajima_d_scan(aln_file, outgroup, pop_meta)
     } else {
         # distance results for a given alignment - order (Nei and WC total Fst, WC pair Fst, Nei' Dxy
@@ -172,7 +177,7 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         # write Nei's Ds output table
         write.table(as.matrix(res_dist[[3]]), file=output_table, quote=FALSE, row.names=TRUE, sep="\t",
             append=TRUE)
-    } else if (metric == 'tajima') {
+    } else if (metric == 'tajima' | metric == 'tajima-human') {
         # write the SW tajima D scan results
         write.table(res_dist, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
     } else if (metric == 'fst') {
@@ -187,7 +192,7 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         # write the pairwise WC Fst
         write.table(as.matrix(res_dist[[2]]), file=output_table, quote=FALSE, row.names=TRUE, sep="\t",
         append=TRUE)
-    } else if (metric == 'swfst') {
+    } else if (metric == 'swfst' | metric == 'swfst-human') {
         write.table(res_dist, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
     }
 

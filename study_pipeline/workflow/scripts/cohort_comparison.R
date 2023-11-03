@@ -5,13 +5,12 @@
 
 # allow for command line args
 args <- commandArgs(trailingOnly = TRUE)
-tree_file <- args[1]
-outgroup <- args[2]
-aln_file <- args[3]
-pop_metadata <- args[4]
-hist_out_figure <- args[5]
-pval_out_table <- args[6]
-cohort <- args[7]
+outgroup <- args[1]
+aln_file <- args[2]
+pop_metadata <- args[3]
+hist_out_figure <- args[4]
+pval_out_table <- args[5]
+cohort <- args[6]
 
 # load libs
 library(adegenet)
@@ -27,13 +26,10 @@ source("scripts/utilities.R")
 # palette
 titipounamu <- c("#3E4331", "#AD6B17", "#66743B", "#D0C471", "#CCB62F", "#BAC4C2")
 
-cohort_comparison <- function(tree_file, outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort) {
-
-  # read tree
-  tree_r_no_out <- read_tree(tree_file, outgroup)
+cohort_comparison <- function(outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort) {
 
   # read aln data from file:
-  genind_obj <- read_aln(aln_file, tree_r_no_out)
+  genind_obj <- read_aln(aln_file, outgroup, tree = FALSE)
 
   # get the euclidean distances
   euclidean_dist <- dist(genind_obj, method = "euclidean", diag = TRUE, upper = TRUE, p = 2)
@@ -88,5 +84,5 @@ cohort_comparison <- function(tree_file, outgroup, aln_file, pop_metadata, hist_
 }
 
 # run the function
-cohort_comparison(tree_file, outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort)
+cohort_comparison(outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort)
 

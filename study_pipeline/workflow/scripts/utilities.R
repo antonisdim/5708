@@ -38,29 +38,39 @@ read_aln <- function(aln_file, set_no_out, sw = FALSE, tree = TRUE) {
 }
 
 
-population_host_metadata <- function(pop_metadata) {
+population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE) {
   # read file with population metadata
   pop_meta <- read.csv(file = pop_metadata, sep = "\t", header = TRUE)
 
-  human <- c("Human")
-  ruminant <- c("Beef", "Bovine", "Sheep", "Goat", "Ovine/Goat")
-  avian <- c("Chicken", "Avian", "Crow", "Poultry", "Turkey")
-  food <- c("Food", "Dairy")
-  swine <- c("Pork", "Swine", "Pig")
-  other_mammal <- c("Primate", "Rodent", "Deer", "Canine", "Feline", "Marine Mammal", "Other Mammal")
-  other <- c("Soil", "Water", "Water/River", "Soil/Dust", "ND/Other", "Laboratory", "Plant", "Animal-related",
-             "Environment")
+  if (host) {
+    human <- c("Human")
+    ruminant <- c("Beef", "Bovine", "Sheep", "Goat", "Ovine/Goat")
+    avian <- c("Chicken", "Avian", "Crow", "Poultry", "Turkey")
+    food <- c("Food", "Dairy")
+    swine <- c("Pork", "Swine", "Pig")
+    other_mammal <- c("Primate", "Rodent", "Deer", "Canine", "Feline", "Marine Mammal", "Other Mammal")
+    other <- c("Soil", "Water", "Water/River", "Soil/Dust", "ND/Other", "Laboratory", "Plant", "Animal-related",
+               "Environment")
 
-  pop_meta$Trait[pop_meta$Host %in% human] <- "Human"
-  pop_meta$Trait[pop_meta$Host %in% ruminant] <- "Ruminant"
-  pop_meta$Trait[pop_meta$Host %in% avian] <- "Avian"
-  pop_meta$Trait[pop_meta$Host %in% food] <- "Food"
-  pop_meta$Trait[pop_meta$Host %in% swine] <- "Swine"
-  pop_meta$Trait[pop_meta$Host %in% other_mammal] <- "Other_mammal"
-  pop_meta$Trait[pop_meta$Host %in% other] <- "Other"
+    pop_meta$Trait[pop_meta$Host %in% human] <- "Human"
+    pop_meta$Trait[pop_meta$Host %in% ruminant] <- "Ruminant"
+    pop_meta$Trait[pop_meta$Host %in% avian] <- "Avian"
+    pop_meta$Trait[pop_meta$Host %in% food] <- "Food"
+    pop_meta$Trait[pop_meta$Host %in% swine] <- "Swine"
+    pop_meta$Trait[pop_meta$Host %in% other_mammal] <- "Other_mammal"
+    pop_meta$Trait[pop_meta$Host %in% other] <- "Other"
 
-  trait_num_code <- setNames(c("Human", "Ruminant", "Avian", "Food", "Swine", "Other_mammal", "Other"),
-                             c(1, 2, 3, 4, 5, 6, 7))
+    trait_num_code <- setNames(c("Human", "Ruminant", "Avian", "Food", "Swine", "Other_mammal", "Other"),
+                               c(1, 2, 3, 4, 5, 6, 7))
+  } else if (humans) {
+    pop_meta$Trait <- "Rest_of_Context"
+    pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "SB27"), 'Trait'] <- 'SB27_Humans'
+    pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "Context") &
+               (pop_meta$Country == "USA"), 'Trait'] <- 'Context_America_Humans'
+
+    trait_num_code <- setNames(c("SB27_Humans", "Context_America_Humans", "Rest_of_Context"),
+                               c(1, 2, 3))
+  }
 
   pop_meta$Num_Trait <- names(trait_num_code)[match(pop_meta$Trait, trait_num_code)]
 
@@ -93,6 +103,7 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
     meta_set1 <- meta[meta$Dataset == set_1,]
     meta_set2 <- meta[(meta$Host == "Human") &
                         (meta$Dataset == "Context") &
+                        (meta$Country == "USA") &
                         (meta$continent == "North America"),]
   } else if (cohort == 'americans-time') {
     set_1 <- "SB27"
@@ -100,13 +111,14 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
     meta_set1 <- meta[meta$Dataset == set_1,]
     meta_set2 <- meta[(meta$Host == "Human") &
                         (meta$Dataset == "Context") &
+                        (meta$Country == "USA") &
                         (meta$continent == "North America") &
                         (meta$year %in% c(2015, 2016)),]
   } else if (cohort == 'america-all') {
     set_1 <- "SB27"
     set_2 <- "American_context"
     meta_set1 <- meta[meta$Dataset == set_1,]
-    meta_set2 <- meta[(meta$Dataset == "Context") & (meta$continent == "North America"),]
+    meta_set2 <- meta[(meta$Dataset == "Context") & (meta$Country == "USA") & (meta$continent == "North America"),]
   } else if (cohort == 'narms-2019') {
     set_1 <- "Cali_NARMS_2019"
     set_2 <- "Rest_USA_NARMS_2019"

@@ -2,3 +2,4 @@ channels:
   - bioconda
 dependencies:
   - iqtree=2.2.0_beta
+  - snp-sites=2.5.1
