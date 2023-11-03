@@ -6,12 +6,11 @@
 
 # allow for command line args
 args <- commandArgs(trailingOnly = TRUE)
-tree_file <- args[1]
-outgroup <- args[2]
-aln_file_rec <- args[3]
-aln_file_nrec <- args[4]
-pop_metadata <- args[5]
-out_table <- args[6]
+outgroup <- args[1]
+aln_file_rec <- args[2]
+aln_file_nrec <- args[3]
+pop_metadata <- args[4]
+out_table <- args[5]
 
 # load libs
 library(ade4)
@@ -23,20 +22,16 @@ library(poppr)
 source("scripts/utilities.R")
 
 # poppr function
-heritability_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) {
-
-    # read tree
-    tree_r_no_out <- read_tree(tree_file, outgroup)
+heritability_calculate <- function(outgroup, aln_file, pop_metadata) {
     
     # read aln data from file:
-    genind_obj <- read_aln(aln_file, tree_r_no_out)
+    genind_obj <- read_aln(aln_file, outgroup, tree = FALSE)
     
     # read file with population metadata
     pop_meta <- population_host_metadata(pop_metadata)
     
     # load traits and define the population strata IN THE CORRECT ORDER - same order as in the genind object
-    pop_trait <-
-      pop_meta[pop_meta$sample %in% tree_r_no_out$tip.label, ]
+    pop_trait <- pop_meta[pop_meta$sample %in% indNames(genind_obj[indNames(genind_obj) != outgroup]),]
     pop_trait <- pop_trait[match(indNames(genind_obj), pop_trait$sample),]
     strata(genind_obj) <- pop_trait[, c("Trait", "Host", "Source")]
     setPop(genind_obj) <- ~ Trait
@@ -63,13 +58,13 @@ heritability_calculate <- function(tree_file, outgroup, aln_file, pop_metadata) 
   }
 
 # function to calculate heritability before and after masking recombination
-heritability  <- function(tree_file, outgroup, aln_file_rec, aln_file_nrec, pop_metadata, out_table) {
+heritability  <- function(outgroup, aln_file_rec, aln_file_nrec, pop_metadata, out_table) {
 
     # get the H^2 for the alignments before we remove the recombination
-    rec_h_broad <- heritability_calculate(tree_file, outgroup, aln_file_rec, pop_metadata)
+    rec_h_broad <- heritability_calculate(outgroup, aln_file_rec, pop_metadata)
 
     # get the H^2 for the alignments after we remove the recombination
-    nrec_h_broad <- heritability_calculate(tree_file, outgroup, aln_file_nrec, pop_metadata)
+    nrec_h_broad <- heritability_calculate(outgroup, aln_file_nrec, pop_metadata)
 
     # combine the results
     rec_res <- c("Recombination", rec_h_broad)

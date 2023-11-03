@@ -96,7 +96,6 @@ rule pop_gen_stats:
 
 rule heritability:
     input:
-        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
         aln_rec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta",
         aln_nrec="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
@@ -113,7 +112,7 @@ rule heritability:
     params:
         out=lambda wildcards: get_out_genome(wildcards),
     shell:
-        "(Rscript scripts/heritability.R {input.tree} {params.out} {input.aln_rec} {input.aln_nrec} "
+        "(Rscript scripts/heritability.R {params.out} {input.aln_rec} {input.aln_nrec} "
         "{input.pop_meta} {output.table}) &> {log}"
 
 
