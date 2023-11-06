@@ -270,6 +270,7 @@ def population_host_metadata(pop_metadata):
         "Deer",
         "Canine",
         "Feline",
+        "Equine",
         "Marine Mammal",
         "Other Mammal",
     ]

@@ -14,6 +14,7 @@ from scripts.utilities import (
     get_ref_genome,
     get_out_genome,
     get_ref_idx,
+    genome_chromosome,
 )
 
 
@@ -129,10 +130,37 @@ rule run_iq_gtr_gamma:
     resources:
         mem_gb=138,
     shell:
-        "(const_sites=$(snp-sites -C {input}) && "
-        "iqtree2 -s {input} -m GTR+F+G -fconst $const_sites -T {threads} "
-        "-t PARS -B 1000 --prefix {params.prefix} "
-        "--mem {resources.mem_gb}G) 2> {log}"
+        'cluster_input=$"{wildcards.cluster}";'
+        'if [[ "$cluster_input" == "1000" ]]; then'
+        "   iqtree2 -s {input} -m GTR+F+G -T {threads} -t PARS -B 1000 --prefix {params.prefix} --mem {resources.mem_gb}G 2> {log};"
+        "else"
+        "   (const_sites=$(snp-sites -C msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_nrec.fasta) && "
+        "   iqtree2 -s {input} -m GTR+F+G -fconst $const_sites -T {threads} "
+        "   -t PARS -B 1000 --prefix {params.prefix} "
+        "   --mem {resources.mem_gb}G) 2> {log};"
+        "fi"
+
+
+rule run_bactdating:
+    input:
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
+        pop_meta="aux_files/{pathogen}_lineage_all_meta.tsv",
+    log:
+        "trees_{pathogen}/{pathogen}_{population}_{cluster}_bactdating.log",
+    output:
+        "trees_{pathogen}/{pathogen}_{population}_{cluster}_bactdating.tree",
+    message:
+        "Running bactdating on the iqtree output for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    conda:
+        "../envs/rgithub.yaml"
+    params:
+        out=lambda wildcards: get_out_genome(wildcards),
+        genome_size=lambda wildcards: genome_chromosome(
+            get_ref_idx(wildcards), size=True
+        ),
+    shell:
+        "(Rscript scripts/run_bactdating.R {input.tree} {params.out} {params.genome_size} "
+        "{input.pop_meta} {output}) &> {log}"
 
 
 rule run_raxml_gtr_gamma:
