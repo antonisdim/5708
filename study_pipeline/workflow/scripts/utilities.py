@@ -43,15 +43,20 @@ def read_lineage_contx_list():
     return samples
 
 
-def get_contaminated_samples():
+def get_contaminated_samples(wildcards):
     """Function to get the contaminated samples in our dataset"""
 
-    contaminated = pd.DataFrame(columns=["Sample_Acc", "Species"])
+    contaminated = pd.DataFrame(columns=["Sample_Acc", "Species", "Pop_level"])
 
     if CONT_SAMPLE_TABLE:
         contaminated = pd.read_csv(
-            CONT_SAMPLE_TABLE, sep="\t", names=["Sample_Acc", "Species"]
+            CONT_SAMPLE_TABLE, sep="\t", names=["Sample_Acc", "Species", "Pop_level"]
         )
+
+        if hasattr(wildcards, "population") and (wildcards.population == "cluster"):
+            contaminated = contaminated[
+                contaminated["Pop_level"] == "Baps_Clusters"
+            ].copy()
 
     return contaminated
 
@@ -104,7 +109,7 @@ def get_right_pathogen(wildcards, checkpoints, cont_check=True):
 
     # exclude any contaminated samples
     if cont_check:
-        contaminated_samples = get_contaminated_samples()
+        contaminated_samples = get_contaminated_samples(wildcards)
         patho_samples = patho_samples[
             ~patho_samples["Sample_Acc"].isin(contaminated_samples["Sample_Acc"])
         ]

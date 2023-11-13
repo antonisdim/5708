@@ -41,13 +41,15 @@ run_bactdating <- function(treefile, outgroup, genome_length, pop_metadata, out_
   collection_year <- as.numeric(pop_trait$Collection_Year)
 
   # run bactdating
-  res <- bactdate(tree_obj, collection_year, nbIts=5e+7, showProgress=TRUE, updateRoot=FALSE)
+  res <- bactdate(tree_obj, collection_year, nbIts=3.5e+6, model="mixedgamma", showProgress=TRUE, updateRoot=FALSE)
 
   # convert bactdating results to a coda MCMC df
   mcmc <- as.mcmc.resBactDating(res, burnin = 0.1)
   ess <- effectiveSize(mcmc)
 
   print(res)
+  cat("The probability that the tree is evolving under a strict clock is:", res$pstrict)
+  print("The effective sample sizes of the mcmc run is")
   print(ess)
 
   # convert the bactdating tree into a beast format

@@ -163,6 +163,63 @@ rule run_bactdating:
         "{input.pop_meta} {output}) &> {log}"
 
 
+rule remove_outgroup:
+    input:
+        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec.fasta",
+    output:
+        temp(
+            "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_no_out.fasta"
+        ),
+    message:
+        "Removing outgroup from chromosome alignment for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    conda:
+        "../envs/biopython.yaml"
+    script:
+        "../scripts/remove_outgroup.py"
+
+
+rule run_treetime:
+    input:
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_pruned.nwk",
+        alignment="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_no_out.fasta",
+    log:
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}_treetime.log",
+    output:
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/trace_run.log",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/sequence_evolution_model.txt",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/molecular_clock.txt",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/skyline.tsv",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/skyline.pdf",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/timetree.pdf",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/substitution_rates.tsv",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/root_to_tip_regression.pdf",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/ancestral_sequences.fasta",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/branch_mutations.txt",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/timetree.nexus",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/divergence_tree.nexus",
+        "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}/dates.tsv",
+    message:
+        "Running treetime for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
+    conda:
+        "../envs/muttui.yaml"
+    resources:
+        timed_tree_inst=1,
+    params:
+        basename="timed_trees_{pathogen}/{pathogen}_{population}_{cluster}",
+    shell:
+        "(treetime --tree {input.tree} "
+        "--dates ../aux_files/ecoli_lineage_all_meta.tsv "
+        "--name-column sample "
+        "--date-column Collection_Year "
+        "--aln {input.alignment} "
+        "--outdir {params.basename} "
+        "--confidence "
+        "--time-marginal only-final "
+        "--coalescent skyline "
+        "--n-skyline 5 "
+        "--relax 1.0 0) 2> {log}"
+
+
 rule run_raxml_gtr_gamma:
     input:
         "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec_snps.fasta",

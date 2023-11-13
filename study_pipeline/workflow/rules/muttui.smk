@@ -13,15 +13,17 @@ rule root_treefile:
     input:
         "trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
     output:
-        temp("muttui_{pathogen}/{pathogen}_{population}_{cluster}_iq_r.nwk"),
+        temp("trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_{pruned}.nwk"),
     message:
         "Rooting tree for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
     conda:
         "../envs/rgithub.yaml"
+    wildcard_constraints:
+        pruned="(pruned|rooted)",
     params:
         out=lambda wildcards: get_out_genome(wildcards),
     shell:
-        "Rscript scripts/root_treefile.R {input} {params.out} {output}"
+        "Rscript scripts/root_treefile.R {input} {params.out} {output} {wildcards.pruned}"
 
 
 rule get_chromosome_ref:
