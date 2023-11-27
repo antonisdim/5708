@@ -28,12 +28,23 @@ rule pairsnp:
         "pairsnp -i {input} > {output}"
 
 
+def get_correct_metadata(wildcards):
+    """Get the correct metadata file depending on context size"""
+
+    if wildcards.population == 'cluster':
+        pop_meta = f"aux_files/{wildcards.pathogen}_all_meta.tsv"
+    else:
+        pop_meta = f"aux_files/{wildcards.pathogen}_lineage_all_meta.tsv"
+
+    return pop_meta
+
+
 # todo change the pop meta in a wild card combo that fits both clusters and pops or combine them into a single file
 rule transition_analysis:
     input:
         snps="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
-        pop_meta="aux_files/{pathogen}_all_meta.tsv",
+        pop_meta=get_correct_metadata,
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_transition_analysis.log",
     output:
@@ -54,7 +65,7 @@ rule transition_analysis:
     shell:
         "(Rscript scripts/transition_analysis.R {input.snps} {input.tree} {params.out} {input.pop_meta} "
         "{output.all_hosts} {output.boot_hosts} {output.anc_states} {output.anc_counts} {params.clock} "
-        "{params.genome_size} {TIME_INTERVAL}) &> {log}"
+        "{params.genome_size} {TIME_INTERVAL} {wildcards.cluster}) &> {log}"
 
 
 rule cohort_comparison:

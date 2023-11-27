@@ -182,6 +182,7 @@ rule run_treetime:
     input:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_pruned.nwk",
         alignment="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_no_out.fasta",
+        meta="aux_files/{pathogen}_lineage_all_meta.tsv",
     log:
         "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}_treetime.log",
     output:
@@ -206,14 +207,17 @@ rule run_treetime:
         timed_tree_inst=1,
     params:
         basename="timed_trees_{pathogen}/{pathogen}_{population}_{cluster}",
+        clock_stdev=0.00003,
     shell:
         "(treetime --tree {input.tree} "
-        "--dates ../aux_files/ecoli_lineage_all_meta.tsv "
+        "--dates {input.meta} "
         "--name-column sample "
         "--date-column Collection_Year "
         "--aln {input.alignment} "
         "--outdir {params.basename} "
+        "--report-ambiguous "
         "--confidence "
+        "--clock-std-dev {params.clock_stdev} "
         "--time-marginal only-final "
         "--coalescent skyline "
         "--n-skyline 5 "

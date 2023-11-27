@@ -82,6 +82,10 @@ rule all:
             "timed_trees_ecoli/ecoli_population_{num}/timetree.nexus",
             num=[26, 17, 24],
         ),
+        expand(
+            "trees_stats_ecoli/ecoli_population_{num}_ace_tr_summary.tsv",
+            num=[26, 17, 24],
+        ),
         # "aux_files/github_r.done",
         # "trees_stats_ecoli/ecoli_cluster_tree_stats.tsv",
         # "trees_stats_ecoli/ecoli_population_21_total_host_links.tsv",

@@ -17,6 +17,7 @@ state_tr_table <- args[8]
 clock <- as.numeric(args[9])
 genome_size <- as.numeric(args[10])
 time_interval <- as.numeric(args[11])
+cluster <- as.numeric(args[12])
 
 # load libs
 library(igraph)
@@ -150,17 +151,19 @@ transition_analysis <-
            state_tr_table,
            clock,
            genome_size,
-           time_interval) {
+           time_interval,
+           cluster) {
 
 
     tree_obj <- read_tree(treefile, outgroup)
     snp_dist_net(snp_file, tree_obj, pop_meta, all_out_table, clock, genome_size, time_interval)
 
     sample_meta_df <- population_host_metadata(pop_meta)
+    sample_meta_df <- sample_meta_df[sample_meta_df$cluster == cluster,]
     host_counts <- sample_meta_df %>%
       count(Trait, sort = TRUE) %>%
       arrange(n)
-    subsample_num <- host_counts[2, c('n')]
+    subsample_num <- host_counts[3, c('n')]
 
     # hold the data to average over in these lists
     mean_state_time <- data.frame(matrix(ncol = nrow(sample_meta_df %>% count(Trait, sort = TRUE)) + 1, nrow = 0))
@@ -294,4 +297,4 @@ transition_analysis <-
 
 # run the function
 transition_analysis(snp_file, treefile, outgroup, pop_meta, all_out_table, most_common_table, state_sum_table,
-                    state_tr_table, clock, genome_size, time_interval)
+                    state_tr_table, clock, genome_size, time_interval, cluster)
