@@ -301,3 +301,20 @@ def population_host_metadata(pop_metadata):
     pop_meta.loc[pop_meta["Host"].isin(other), "Trait"] = "Other"
 
     return pop_meta
+
+
+def get_snp_tree_aln(wildcards):
+    """Get the correct alignment for the iqtree - basically if it is cluster 1000 get the non rec snps"""
+
+    if wildcards.cluster != "1000":
+        snp_aln = (
+            f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
+            f"_chr_aln_nrec_snps.fasta"
+        )
+    else:
+        snp_aln = (
+            f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
+            f"_chr_aln_snps.fasta"
+        )
+
+    return snp_aln

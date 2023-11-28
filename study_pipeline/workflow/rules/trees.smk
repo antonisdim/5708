@@ -15,6 +15,7 @@ from scripts.utilities import (
     get_out_genome,
     get_ref_idx,
     genome_chromosome,
+    get_snp_tree_aln,
 )
 
 
@@ -97,18 +98,9 @@ rule get_chromosome_snps_aln:
         "(snp-sites -m -o {output} {input})"
 
 
-def get_iq_tree_aln(wildcards):
-    """Get the correct alignment for the iqtree - basically if it is cluster 1000 get the non rec snps"""
-
-    if wildcards.cluster != "1000":
-        return f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_nrec_snps.fasta"
-    else:
-        return f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_chr_aln_snps.fasta"
-
-
 rule run_iq_gtr_gamma:
     input:
-        get_iq_tree_aln,
+        get_snp_tree_aln,
     log:
         "trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.log",
     output:
@@ -222,27 +214,3 @@ rule run_treetime:
         "--coalescent skyline "
         "--n-skyline 5 "
         "--relax 1.0 0) 2> {log}"
-
-
-rule run_raxml_gtr_gamma:
-    input:
-        "msa_{pathogen}/{pathogen}_cluster_{cluster}_chr_aln_nrec_snps.fasta",
-    log:
-        "trees_{pathogen}/RAxML_{pathogen}_cluster_{cluster}.log",
-    output:
-        best_tree="trees_{pathogen}/RAxML_bestTree.{pathogen}_cluster_{cluster}",
-        bipartition_labels="trees_{pathogen}/RAxML_bipartitionsBranchLabels.{pathogen}_cluster_{cluster}",
-        bipartition="trees_{pathogen}/RAxML_bipartitions.{pathogen}_cluster_{cluster}",
-        bootstrap="trees_{pathogen}/RAxML_bootstrap.{pathogen}_cluster_{cluster}",
-        info="trees_{pathogen}/RAxML_info.{pathogen}_cluster_{cluster}",
-    message:
-        "Running raxml for {wildcards.pathogen} cluster {wildcards.cluster}."
-    threads: workflow.cores * 0.25
-    conda:
-        "../envs/raxml.yaml"
-    params:
-        basename="{pathogen}_cluster_{cluster}",
-        workdir=lambda wildcards: os.path.abspath(f"trees_{wildcards.pathogen}"),
-    shell:
-        "(raxmlHPC-PTHREADS -f a -x 12345 -p 12345 -T {threads} -m GTRGAMMA -k -# 100 "
-        "-s {input} -n {params.basename} -w {params.workdir}) 2> {log}"

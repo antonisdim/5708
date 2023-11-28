@@ -12,6 +12,7 @@ from scripts.utilities import (
     get_ref_idx,
     get_clock_rate,
     TIME_INTERVAL,
+    get_snp_tree_aln,
 )
 
 
@@ -31,7 +32,7 @@ rule pairsnp:
 def get_correct_metadata(wildcards):
     """Get the correct metadata file depending on context size"""
 
-    if wildcards.population == 'cluster':
+    if wildcards.population == "cluster":
         pop_meta = f"aux_files/{wildcards.pathogen}_all_meta.tsv"
     else:
         pop_meta = f"aux_files/{wildcards.pathogen}_lineage_all_meta.tsv"
@@ -39,11 +40,20 @@ def get_correct_metadata(wildcards):
     return pop_meta
 
 
+def get_correct_tree(wildcards):
+    if wildcards.cluster == "1000":
+        tree_path = f"trees_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}_iq.treefile"
+    else:
+        tree_path = f"timed_trees_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}/timetree.nexus"
+
+    return tree_path
+
+
 # todo change the pop meta in a wild card combo that fits both clusters and pops or combine them into a single file
 rule transition_analysis:
     input:
         snps="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
-        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
+        tree=get_correct_tree,
         pop_meta=get_correct_metadata,
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_transition_analysis.log",
@@ -70,7 +80,7 @@ rule transition_analysis:
 
 rule cohort_comparison:
     input:
-        aln="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+        aln=get_snp_tree_aln,
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{set}_cohort_comparison.log",

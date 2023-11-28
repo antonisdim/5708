@@ -12,9 +12,9 @@ root_tree <- function(tree_file, outgroup) {
 }
 
 
-read_tree <- function(tree_file, outgroup) {
+read_tree <- function(tree_file, outgroup, nexus = FALSE) {
   # read tree
-  tree <- read.tree(file = tree_file)
+  tree <- if (nexus) read.nexus(tree_file) else read.tree(file = tree_file)
   tree_r <- root(tree, outgroup = outgroup, edgelabel = TRUE)
   tree_r_no_out <- drop.tip(tree_r, c(outgroup), rooted = TRUE, collapse.singles = TRUE)
   cat("The number of tips in the tree is: ", length(tree_r_no_out$tip.label), "\n")

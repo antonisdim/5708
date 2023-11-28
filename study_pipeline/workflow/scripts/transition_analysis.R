@@ -62,6 +62,7 @@ snp_dist_net <-
     xg <- as.igraph(tree_no_out, directed = FALSE)
     comm <- cluster_fast_greedy(xg)
     V(xg)$community <- membership(comm)
+    cat("Done with converting the tree to a network.\n")
 
     vcom <- data.frame(as_ids(V(xg)), V(xg)$community)
     colnames(vcom) <- c("sample", "network_id")
@@ -155,8 +156,9 @@ transition_analysis <-
            cluster) {
 
 
-    tree_obj <- read_tree(treefile, outgroup)
+    tree_obj <- if (cluster == 1000) read_tree(treefile, outgroup) else read_tree(treefile, outgroup, nexus = TRUE)
     snp_dist_net(snp_file, tree_obj, pop_meta, all_out_table, clock, genome_size, time_interval)
+    cat("Done with transmission analysis for the whole tree.\n")
 
     sample_meta_df <- population_host_metadata(pop_meta)
     sample_meta_df <- sample_meta_df[sample_meta_df$cluster == cluster,]
@@ -164,6 +166,8 @@ transition_analysis <-
       count(Trait, sort = TRUE) %>%
       arrange(n)
     subsample_num <- host_counts[3, c('n')]
+    print.data.frame(host_counts)
+    cat(paste("We are subsampling", subsample_num, "individuals from each category.\n", sep=" "))
 
     # hold the data to average over in these lists
     mean_state_time <- data.frame(matrix(ncol = nrow(sample_meta_df %>% count(Trait, sort = TRUE)) + 1, nrow = 0))
@@ -187,6 +191,7 @@ transition_analysis <-
               sep = "")
 
       subsample_list <- list()
+      cat(paste("Subsampling iteration", iter, "\n", sep=" "))
 
       # subsample the initital dataframe based with nsample equal to the second least frequent host type
       for (host in unique(sample_meta_df$Trait)) {
@@ -226,7 +231,7 @@ transition_analysis <-
 
       char <- unlist(as.list(deframe(subsample_df[, c("sample", "Trait")])))
       char <- char[names(char) != "SRR10270781"]
-
+      print(subset_tree)
       # make the ACE simmap and summarise it
       stochastic_ace_tree <- make.simmap(subset_tree, char, model = "ER")
       ace_tree_sum <- describe.simmap(stochastic_ace_tree, plot = FALSE)
