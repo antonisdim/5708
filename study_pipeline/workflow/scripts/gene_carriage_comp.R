@@ -1,5 +1,5 @@
 # Title     : gene_carriage_comparison
-# Objective : Compare the number of amr or vf genes that are carried by isolates each years
+# Objective : Compare the number of amr or vf genes that are carried by isolates each year
 # Created by: Evangelos A. Dimopoulos"
 # Created on: 16/11/2023
 

@@ -31,6 +31,9 @@ library(tibble)
 # read the utility functions
 source("scripts/utilities.R")
 
+# constants
+CLOCK_STDEV <- 1.87e-7
+
 snp_dist_net <-
   function(snp_dist,
            tree_obj,
@@ -113,8 +116,15 @@ snp_dist_net <-
       mutate(host_link = paste(Taxon1_host, Taxon2_host, sep = "-"))
 
     # calculate the SNP cutoff for the samples belonging to the same transmission group - diveded by 2 because of colaescence
-    snp_cutoff <- round((clock * time_interval * genome_size) / 2)
-    print(snp_cutoff)
+    if (clock < 1e-05) {
+      cat("Clock is slow")
+      snp_cutoff <- round(((clock + 6*CLOCK_STDEV) * time_interval * genome_size) / 2)
+    } else {
+      cat("I am resassigning")
+      snp_cutoff <- round((clock * time_interval * genome_size) / 2)
+    }
+    cat(paste("The snp cutoff is", snp_cutoff, "\n", sep=" "))
+
     # create new df filtering out samples that aren't in the same network and keep only the transmission pairs
     pwsnps_decon_filtered_clusters <-
       pwsnps_decon_filtered %>%
@@ -156,7 +166,7 @@ transition_analysis <-
            cluster) {
 
 
-    tree_obj <- if (cluster == 1000) read_tree(treefile, outgroup) else read_tree(treefile, outgroup, nexus = TRUE)
+    tree_obj <- if (cluster == 1000) read_tree(treefile, outgroup) else read.nexus(treefile)
     snp_dist_net(snp_file, tree_obj, pop_meta, all_out_table, clock, genome_size, time_interval)
     cat("Done with transmission analysis for the whole tree.\n")
 
