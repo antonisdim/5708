@@ -14,6 +14,7 @@ from scripts.utilities import (
     get_ref_genome,
     get_out_genome,
     get_ref_idx,
+    get_aln_file,
 )
 
 
@@ -84,28 +85,14 @@ rule remove_recombination:
 
 rule get_chromosome_snps_aln:
     input:
-        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec.fasta",
+        get_aln_file,
     output:
-        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_{rec}_snps.fasta",
     message:
-        "Getting only the polymorphic positions from the chromosome alignment of "
+        "Getting only the polymorphic positions from the {wildcards.rec} chromosome alignment of "
         "{wildcards.pathogen} {wildcards.population} {wildcards.cluster}."
     conda:
         "../envs/snpsites.yaml"
     shell:
         "(snp-sites -m -o {output} {input})"
 
-
-# todo merge with the above rule
-rule get_chromosome_snps_nrec_aln:
-    input:
-        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln.fasta",
-    output:
-        temp("msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_snps.fasta"),
-    message:
-        "Getting only the polymorphic positions from the chromosome alignment of "
-        "{wildcards.pathogen} {wildcards.population} {wildcards.cluster} before removing recombination."
-    conda:
-        "../envs/snpsites.yaml"
-    shell:
-        "(snp-sites -m -o {output} {input})"

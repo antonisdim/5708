@@ -310,15 +310,20 @@ def get_aln_file(wildcards):
         f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
         f"_chr_aln.fasta"
     )
+    whole_aln_nrec = (
+        f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
+        f"_chr_aln_nrec.fasta"
+    )
     snps_rec = (
         f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
-        f"_chr_aln_snps.fasta"
+        f"_chr_aln_rec_snps.fasta"
     )
     snps_nrec = (
         f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
         f"_chr_aln_nrec_snps.fasta"
     )
 
+    # for the metrics
     if hasattr(wildcards, "metric"):
         if wildcards.metric in ["swfst", "tajima", "swfst-human", "tajima-human"]:
             input_path = whole_aln
@@ -328,9 +333,17 @@ def get_aln_file(wildcards):
             else:
                 input_path = snps_nrec
     else:
-        if wildcards.cluster != "1000":
-            input_path = snps_nrec
+        # for snp-sites at msa.smk
+        if hasattr(wildcards, "rec"):
+            if wildcards.rec == "rec":
+                input_path = whole_aln
+            else:
+                input_path = whole_aln_nrec
+        # for tree building
         else:
-            input_path = snps_rec
+            if wildcards.cluster != "1000":
+                input_path = snps_nrec
+            else:
+                input_path = snps_rec
 
     return input_path
