@@ -26,6 +26,7 @@ if os.path.isfile(REF_GENOME_TABLE):
     include: "rules/bt2_aln.smk"
     include: "rules/htsbox.smk"
     include: "rules/seq_stats.smk"
+    include: "rules/msa.smk"
     include: "rules/trees.smk"
     include: "rules/snp_calling.smk"
     include: "rules/serotyping.smk"

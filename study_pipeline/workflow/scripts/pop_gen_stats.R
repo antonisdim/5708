@@ -1,5 +1,5 @@
 # Title     : pop gen stats
-# Objective : Run Nei's (1982) and Weir and Cockerham's Fst
+# Objective : Run Nei's (1982) and Weir and Cockerham's Fst, Tajima's D, Nei's Dxy, and broad sense heritability H^2
 # Created by: Evangelos A. Dimopoulos"
 # Created on: 08/04/2022
 
@@ -150,7 +150,7 @@ hierfstat_calculate <- function(outgroup, dna_obj, pop_meta, metric) {
     return(stats)
 }
 
-# function to calculate Fsts before and after masking recombination
+# function to calculate Fsts/Dxy/TajiD/H^2 before and after masking recombination
 pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_table) {
 
     # read file with population metadata

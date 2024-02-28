@@ -12,13 +12,13 @@ from scripts.utilities import (
     get_ref_idx,
     get_clock_rate,
     TIME_INTERVAL,
-    get_snp_tree_aln,
+    get_aln_file,
 )
 
 
 rule pairsnp:
     input:
-        "msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_snps.fasta",
+        get_aln_file,
     output:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_pairsnp.tsv",
     message:
@@ -80,7 +80,7 @@ rule transition_analysis:
 
 rule cohort_comparison:
     input:
-        aln=get_snp_tree_aln,
+        aln=get_aln_file,
         pop_meta="aux_files/{pathogen}_all_meta.tsv",
     log:
         "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{set}_cohort_comparison.log",

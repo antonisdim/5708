@@ -1,5 +1,5 @@
 Species	Cluster	ST	Strain	Accession	Paper
-ecoli	1000	131	EC958	GCF_000285655.3	PROVISIONAL
+ecoli	1000	131	BIA_89-5	GCF_028622215.1	https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_028622215.1/ - E. albertii
 ecoli	1	345	cq9	SB279408396	The outgroup is from cluster 32
 ecoli	2	345	cq9	SB279407238	The outgroup is from cluster 19
 ecoli	3	345	cq9	SB279407238	The outgroup is from cluster 19

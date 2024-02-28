@@ -7,10 +7,9 @@
 # allow for command line args
 args <- commandArgs(trailingOnly = TRUE)
 outgroup <- args[1]
-aln_file_rec <- args[2]
-aln_file_nrec <- args[3]
-pop_metadata <- args[4]
-out_table <- args[5]
+aln_file <- args[2]
+pop_metadata <- args[3]
+out_table <- args[4]
 
 # load libs
 library(ade4)
@@ -58,19 +57,17 @@ heritability_calculate <- function(outgroup, aln_file, pop_metadata) {
   }
 
 # function to calculate heritability before and after masking recombination
-heritability  <- function(outgroup, aln_file_rec, aln_file_nrec, pop_metadata, out_table) {
+heritability  <- function(outgroup, aln_file, pop_metadata, out_table) {
 
-    # get the H^2 for the alignments before we remove the recombination
-    rec_h_broad <- heritability_calculate(outgroup, aln_file_rec, pop_metadata)
+    # get the H^2 for the alignments
+    h_broad <- heritability_calculate(outgroup, aln_file, pop_metadata)
 
-    # get the H^2 for the alignments after we remove the recombination
-    nrec_h_broad <- heritability_calculate(outgroup, aln_file_nrec, pop_metadata)
+    # check if the alignment has recombinant sites masked
+    rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
 
-    # combine the results
-    rec_res <- c("Recombination", rec_h_broad)
-    nrec_res <- c("No Recombination", nrec_h_broad)
-
-    h_broad_res <- as.data.frame(rbind(rec_res, nrec_res))
+    # format the results
+    res_vector <- c(rec_state, h_broad)
+    h_broad_res <- as.data.frame(t(res_vector))
     names(h_broad_res) <- c("Rec state", "Heritability (broad sense)")
 
     # write output table
@@ -78,4 +75,4 @@ heritability  <- function(outgroup, aln_file_rec, aln_file_nrec, pop_metadata, o
 }
 
 # run the install function
-heritability(tree_file, outgroup, aln_file_rec, aln_file_nrec, pop_metadata, out_table)
+heritability(tree_file, outgroup, aln_file, pop_metadata, out_table)

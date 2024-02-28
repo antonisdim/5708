@@ -303,18 +303,34 @@ def population_host_metadata(pop_metadata):
     return pop_meta
 
 
-def get_snp_tree_aln(wildcards):
-    """Get the correct alignment for the iqtree - basically if it is cluster 1000 get the non rec snps"""
+def get_aln_file(wildcards):
+    """Get the right aln file for the corresponding summary statistic or tree"""
 
-    if wildcards.cluster != "1000":
-        snp_aln = (
-            f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
-            f"_chr_aln_nrec_snps.fasta"
-        )
+    whole_aln = (
+        f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
+        f"_chr_aln.fasta"
+    )
+    snps_rec = (
+        f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
+        f"_chr_aln_snps.fasta"
+    )
+    snps_nrec = (
+        f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
+        f"_chr_aln_nrec_snps.fasta"
+    )
+
+    if hasattr(wildcards, "metric"):
+        if wildcards.metric in ["swfst", "tajima", "swfst-human", "tajima-human"]:
+            input_path = whole_aln
+        else:
+            if wildcards.rec == "rec":
+                input_path = snps_rec
+            else:
+                input_path = snps_nrec
     else:
-        snp_aln = (
-            f"msa_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{wildcards.cluster}"
-            f"_chr_aln_snps.fasta"
-        )
+        if wildcards.cluster != "1000":
+            input_path = snps_nrec
+        else:
+            input_path = snps_rec
 
-    return snp_aln
+    return input_path
