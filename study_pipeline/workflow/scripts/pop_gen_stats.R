@@ -19,6 +19,7 @@ library(ape)
 library(hierfstat)
 library(pegas)
 library(reshape2)
+library(poppr)
 
 # read the utility functions
 source("scripts/utilities.R")
@@ -150,6 +151,39 @@ hierfstat_calculate <- function(outgroup, dna_obj, pop_meta, metric) {
     return(stats)
 }
 
+# poppr heritability function
+heritability_calculate <- function(outgroup, aln_file, pop_meta) {
+
+    # read aln data from file:
+    genind_obj <- read_aln(aln_file, outgroup, tree = FALSE)
+
+    # load traits and define the population strata IN THE CORRECT ORDER - same order as in the genind object
+    pop_trait <- pop_meta[pop_meta$sample %in% indNames(genind_obj[indNames(genind_obj) != outgroup]),]
+    pop_trait <- pop_trait[match(indNames(genind_obj), pop_trait$sample),]
+    strata(genind_obj) <- pop_trait[, c("Trait", "Host", "Source")]
+    setPop(genind_obj) <- ~ Trait
+
+    # perform an amova analysis on the alignment
+    amova_res <- list()
+    tryCatch({amova_res <- poppr.amova(genind_obj, ~ Trait, cutoff = 0.1)},
+            error= function(e) {cat("ERROR :",conditionMessage(e), "\n",
+            "H^2 cannot be calculated for that region. There are too many missing sites (>10%).",
+            "\n")})
+
+    if (length(amova_res) == 0) {
+        broad_h <- 0
+    } else {
+        # calculate n, m and H^2 based on http://ib.berkeley.edu/courses/ib162/Week4a.htm
+        n <- amova_res$results['Between samples', 'Df'] + 1
+        m <- (amova_res$results['Total', 'Df'] + 1) / n
+
+        broad_h <- ((amova_res$results['Between samples', 'Mean Sq'] - amova_res$results['Within samples', 'Mean Sq']) /
+                    m) / amova_res$results['Total', 'Mean Sq']
+    }
+
+    return(broad_h)
+  }
+
 # function to calculate Fsts/Dxy/TajiD/H^2 before and after masking recombination
 pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_table) {
 
@@ -167,6 +201,8 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         res_dist <- sw_fst_scan(aln_file, outgroup, pop_meta)
     } else if (metric == 'tajima' | metric == 'tajima-human') {
         res_dist <- sw_tajima_d_scan(aln_file, outgroup, pop_meta)
+    } else if (metric == 'heritability') {
+        res_dist <- heritability_calculate(outgroup, aln_file, pop_meta)
     } else {
         # distance results for a given alignment - order (Nei and WC total Fst, WC pair Fst, Nei' Dxy
         res_dist <- hierfstat_calculate(outgroup, read_aln(aln_file, outgroup, tree = FALSE), pop_meta, metric)
@@ -194,8 +230,15 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         append=TRUE)
     } else if (metric == 'swfst' | metric == 'swfst-human') {
         write.table(res_dist, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
-    }
+    } else if (metric == 'heritability') {
+        # check if the alignment has recombinant sites masked
+        rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
+        h_broad_res <- as.data.frame(t(c(rec_state, res_dist)))
+        names(h_broad_res) <- c("Rec state", "Heritability (broad sense)")
 
+        # write output table
+        write.table(h_broad_res, file=out_table, row.names=FALSE, quote=FALSE, sep='\t')
+    }
 
 }
 

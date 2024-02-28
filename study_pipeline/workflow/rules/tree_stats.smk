@@ -65,29 +65,6 @@ rule pop_gen_stats:
         "{output.stat_table}) &> {log}"
 
 
-rule heritability:
-    input:
-        aln_file=get_aln_file,
-        pop_meta="aux_files/{pathogen}_all_meta.tsv",
-    log:
-        "trees_stats_{pathogen}/{pathogen}_{population}_{cluster}_{rec}_heritability.log",
-    output:
-        table="trees_stats_{pathogen}/{pathogen}_{population}_{cluster}__{rec}_heritability.tsv",
-    message:
-        "Calucluate the broad sense heritability (H^2) from an amova, "
-        "for {wildcards.pathogen} {wildcards.population} {wildcards.cluster}, "
-        "before and after removing recombinant regions."
-    conda:
-        "../envs/rgithub.yaml"
-    params:
-        out=lambda wildcards: get_out_genome(wildcards),
-    wildcard_constraints:
-        rec="(rec|nrec)",
-    shell:
-        "(Rscript scripts/heritability.R {params.out} {input.aln_rec} {input.aln_nrec} "
-        "{input.pop_meta} {output.table}) &> {log}"
-
-
 rule association_index:
     input:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
@@ -108,20 +85,6 @@ rule association_index:
     shell:
         "(python scripts/association_index.py --tree {input.tree} --boot {params.boot} "
         "--meta {input.pop_meta} --outgroup {params.out} --outfile {output}) &> {log}"
-
-
-def get_cluster_treewas(wildcards):
-    """Get the fst files belonging for the clusters that have been run so far"""
-
-    input_paths = []
-    cluster_list = get_clusters_to_run(wildcards)
-
-    for cluster in cluster_list:
-        input_paths.append(
-            f"trees_stats_{wildcards.pathogen}/{wildcards.pathogen}_{wildcards.population}_{cluster}_treewas.tsv"
-        )
-
-    return input_paths
 
 
 # todo clean everything downstream from here. too messy. keep only one input function using the metric wildcard like I did before

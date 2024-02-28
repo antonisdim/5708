@@ -95,4 +95,3 @@ rule get_chromosome_snps_aln:
         "../envs/snpsites.yaml"
     shell:
         "(snp-sites -m -o {output} {input})"
-
