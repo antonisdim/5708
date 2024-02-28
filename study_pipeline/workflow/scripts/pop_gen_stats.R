@@ -208,6 +208,9 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         res_dist <- hierfstat_calculate(outgroup, read_aln(aln_file, outgroup, tree = FALSE), pop_meta, metric)
     }
 
+    # check if the alignment has recombinant sites masked
+    rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
+
     # depending on the stat create the appropriate output
     if (metric == 'dxy') {
         # write Nei's Ds output table
@@ -217,8 +220,6 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         # write the SW tajima D scan results
         write.table(res_dist, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
     } else if (metric == 'fst') {
-        # check if the alignment has recombinant sites masked
-        rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
         fst_res <- as.data.frame(t(c(rec_state, res_dist[[1]])))
         names(fst_res) <- c("Rec state", "Nei's Fst", "WC's Fst")
 
@@ -231,8 +232,6 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
     } else if (metric == 'swfst' | metric == 'swfst-human') {
         write.table(res_dist, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
     } else if (metric == 'heritability') {
-        # check if the alignment has recombinant sites masked
-        rec_state <- if (grepl('nrec', aln_file)) "No Recombination" else "Recombination"
         h_broad_res <- as.data.frame(t(c(rec_state, res_dist)))
         names(h_broad_res) <- c("Rec state", "Heritability (broad sense)")
 
