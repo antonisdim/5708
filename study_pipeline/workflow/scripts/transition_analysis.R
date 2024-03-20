@@ -117,12 +117,10 @@ snp_dist_net <-
 
     # calculate the SNP cutoff for the samples belonging to the same transmission group - diveded by 2 because of colaescence
     if (clock < 1e-05) {
-      cat("Clock is slow")
-      snp_cutoff <- round(((clock + 6*CLOCK_STDEV) * time_interval * genome_size) / 2)
-    } else {
-      cat("I am resassigning")
-      snp_cutoff <- round((clock * time_interval * genome_size) / 2)
+      cat("Consider increasing the time interval if you don't see many transmission chains\n")
     }
+    cat(paste("The clock rate is", clock, "\n", sep=" "))
+    snp_cutoff <- round((clock * time_interval * genome_size) / 2)
     cat(paste("The snp cutoff is", snp_cutoff, "\n", sep=" "))
 
     # create new df filtering out samples that aren't in the same network and keep only the transmission pairs
@@ -171,7 +169,9 @@ transition_analysis <-
     cat("Done with transmission analysis for the whole tree.\n")
 
     sample_meta_df <- population_host_metadata(pop_meta)
+    if (cluster != 1000) {
     sample_meta_df <- sample_meta_df[sample_meta_df$cluster == cluster,]
+    }
     host_counts <- sample_meta_df %>%
       count(Trait, sort = TRUE) %>%
       arrange(n)

@@ -12,6 +12,7 @@ from scripts.utilities import (
     get_ref_idx,
     genome_chromosome,
     get_aln_file,
+    get_correct_metadata,
 )
 
 
@@ -53,7 +54,7 @@ rule run_iq_gtr_gamma:
 rule run_bactdating:
     input:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq.treefile",
-        pop_meta="aux_files/{pathogen}_lineage_all_meta.tsv",
+        pop_meta=get_correct_metadata,
     log:
         "trees_{pathogen}/{pathogen}_{population}_{cluster}_bactdating.log",
     output:
@@ -91,7 +92,7 @@ rule run_treetime:
     input:
         tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_pruned.nwk",
         alignment="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec_no_out.fasta",
-        meta="aux_files/{pathogen}_lineage_all_meta.tsv",
+        meta=get_correct_metadata,
     log:
         "timed_trees_{pathogen}/{pathogen}_{population}_{cluster}_treetime.log",
     output:
@@ -117,6 +118,7 @@ rule run_treetime:
     params:
         basename="timed_trees_{pathogen}/{pathogen}_{population}_{cluster}",
         clock_stdev=0.00003,
+        sky_dim=25,  # it used to be 5 now 25 for more resolution
     shell:
         "(treetime --tree {input.tree} "
         "--dates {input.meta} "
@@ -129,5 +131,5 @@ rule run_treetime:
         "--clock-std-dev {params.clock_stdev} "
         "--time-marginal only-final "
         "--coalescent skyline "
-        "--n-skyline 5 "
+        "--n-skyline {params.sky_dim} "
         "--relax 1.0 0) 2> {log}"

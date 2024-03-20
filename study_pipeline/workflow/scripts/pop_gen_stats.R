@@ -165,7 +165,7 @@ heritability_calculate <- function(outgroup, aln_file, pop_meta) {
 
     # perform an amova analysis on the alignment
     amova_res <- list()
-    tryCatch({amova_res <- poppr.amova(genind_obj, ~ Trait, cutoff = 0.1)},
+    tryCatch({amova_res <- poppr.amova(genind_obj, ~ Trait, cutoff = 0.1, within = FALSE)},
             error= function(e) {cat("ERROR :",conditionMessage(e), "\n",
             "H^2 cannot be calculated for that region. There are too many missing sites (>10%).",
             "\n")})

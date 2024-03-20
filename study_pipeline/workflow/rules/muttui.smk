@@ -6,7 +6,7 @@ __copyright__ = "Copyright 2022, University of Oxford"
 __email__ = "antonisdim41@gmail.com"
 __license__ = "MIT"
 
-from scripts.utilities import get_out_genome, get_ref_idx
+from scripts.utilities import get_out_genome, get_ref_idx, get_correct_metadata
 
 
 rule root_treefile:
@@ -64,7 +64,7 @@ rule run_muttui_def:
 
 rule cluster_meta:
     input:
-        "aux_files/{pathogen}_all_meta.tsv",
+        get_correct_metadata,
     output:
         temp("muttui_{pathogen}/{pathogen}_{population}_{cluster}_tip_labels.csv"),
     message:
@@ -78,21 +78,21 @@ rule cluster_meta:
 rule run_muttui_label:
     input:
         aln="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec.fasta",
-        tree="muttui_{pathogen}/{pathogen}_{population}_{cluster}_iq_r.nwk",
-        ref="muttui_{pathogen}/{pathogen}_{cluster}_chr.fasta",
-        pos="muttui_{pathogen}/{pathogen}_{cluster}_pos.tsv",
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_pruned.nwk",
         labels="muttui_{pathogen}/{pathogen}_{population}_{cluster}_tip_labels.csv",
     log:
-        "muttui_{pathogen}/{pathogen}_{population}_{cluster}_label/muttui.log",
+        "muttui_{pathogen}/{pathogen}_{population}_{cluster}_label_tr/muttui.log",
     output:
-        "muttui_{pathogen}/{pathogen}_{population}_{cluster}_label/all_included_mutations.csv",
+        "muttui_{pathogen}/{pathogen}_{population}_{cluster}_label_tr/all_included_mutations.csv",
     message:
         "Running MutTui to get the mutational spectrum for each host category for "
         "{wildcards.pathogen} {wildcards.population} {wildcards.cluster} (with MutTui doing the ACE)."
     conda:
         "../envs/biopython.yaml"
     params:
-        basename="muttui_{pathogen}/{pathogen}_{population}_{cluster}_label",
+        basename="muttui_{pathogen}/{pathogen}_{population}_{cluster}_label_tr",
+    wildcard_constraints:
+        population="(cluster|population)",
     shell:
-        "(python ~/bin/MutTui-main/muttui/muttui.py  -a {input.aln} -t {input.tree} -r {input.ref} "
-        "-c {input.pos} -l {input.labels} -o {params.basename} --exclude_root_branches) &> {log}"
+        "(MutTui run --alignment {input.aln} --tree {input.tree}  --labels {input.labels} "
+        "-o {params.basename} --exclude_root_branches --all_sites) &> {log}"

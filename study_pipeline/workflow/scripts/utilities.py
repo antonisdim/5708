@@ -347,3 +347,14 @@ def get_aln_file(wildcards):
                 input_path = snps_rec
 
     return input_path
+
+
+def get_correct_metadata(wildcards):
+    """Get the correct metadata file depending on context size"""
+
+    if wildcards.population == "cluster":
+        pop_meta = f"aux_files/{wildcards.pathogen}_all_meta.tsv"
+    else:
+        pop_meta = f"aux_files/{wildcards.pathogen}_lineage_all_meta.tsv"
+
+    return pop_meta
