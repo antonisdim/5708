@@ -39,7 +39,7 @@ gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb
   # filter based on whether we are keeping only the SB27 samples or not and which lineage
   if (sb27 == 'sb27') pop_meta <- pop_meta[pop_meta$Dataset == 'SB27',]
   if (as.numeric(lineage) != 1000) pop_meta <- pop_meta[pop_meta$cluster == as.numeric(lineage),]
-  cat(paste("We are analysing", nrow(pop_meta), "isolates", sep = " "))
+  cat(paste("We are analysing", nrow(pop_meta), "isolates\n", sep = " "))
 
   # get a list of dates and keep only the ones after 2016
   date_list <- sort(unique(pop_meta$Collection_Year))
@@ -74,13 +74,15 @@ gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb
         # welch's t-test and
         # premeptive in case the first iteration raises an error
         welch <- list()
-        tryCatch({ welch <- t.test(isolates_before$NUM_FOUND, isolates_after$NUM_FOUND) },
-                 error = function(e) { cat("ERROR :", conditionMessage(e), "\n", "not enough data\n")
+        tryCatch({ welch <- t.test(isolates_after$NUM_FOUND, mu=mean(isolates_before$NUM_FOUND), alternative="less") },
+                 error = function(e) { cat("ERROR :", conditionMessage(e), "\n", "dist", length(isolates_after$NUM_FOUND),
+                                           "mu", length(isolates_before$NUM_FOUND), "not enough data\n")
                    welch$p.value <<- NaN })
         # Mann-Whitney-Wilcoxon's test
         wilcox <- list()
-        tryCatch({ wilcox <- wilcox.test(isolates_before$NUM_FOUND, isolates_after$NUM_FOUND) },
-                 error = function(e) { cat("ERROR :", conditionMessage(e), "\n", "not enough data\n")
+        tryCatch({ wilcox <- wilcox.test(isolates_after$NUM_FOUND, mu=mean(isolates_before$NUM_FOUND), alternative="less") },
+                 error = function(e) { cat("ERROR :", conditionMessage(e), "\n", "dist", length(isolates_after$NUM_FOUND),
+                                           "mu", length(isolates_before$NUM_FOUND), "not enough data\n")
                    wilcox$p.value <<- NaN })
 
         # append to the p-values dataframe
@@ -89,7 +91,7 @@ gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb
 
         # report the results
         cat(paste('Comparing if the carriage of genes differs between', before, 'and', after,
-                  'for source', source, '. Pvalue for the Welch t-test is', welch$p.value, 'and for the Wolcoxon test is',
+                  'for source', source, 'and cluster', lineage, '. Pvalue for the Welch t-test is', welch$p.value, 'and for the Wolcoxon test is',
                   wilcox$p.value, "\n", sep = " "))
       }
     }

@@ -143,10 +143,7 @@ for (source in c("All samples", "Human", "Animal")) {
   if (source != 'All samples') pop_freq <- pop_meta[pop_meta$Source == source,]
   
   # group by per year and baps cluster and plot
-  gene_freq_data <- pop_freq  %>%
-    group_by(Collection_Year) %>%
-    summarise(n = n(), gene_count = sum(NUM_FOUND)) %>%
-    mutate(gene_percentage = (gene_count / sum(gene_count))*100)
+
       
       
     bar_plot <- ggplot(data=gene_freq_data[(gene_freq_data$Collection_Year>=2016) & 
