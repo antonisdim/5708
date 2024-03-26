@@ -16,6 +16,7 @@ suppressMessages(library(tidyverse))
 suppressMessages(library(reshape2))
 suppressMessages(library(harmonicmeanp))
 suppressMessages(library(ggplot2))
+suppressMessages(library(rstatix))
 
 # read the utility functions
 source("../../../study_pipeline/workflow/scripts/utilities.R")
@@ -42,60 +43,39 @@ gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb
   cat(paste("We are analysing", nrow(pop_meta), "isolates\n", sep = " "))
 
   # get a list of dates and keep only the ones after 2016
-  date_list <- sort(unique(pop_meta$Collection_Year))
-  date_list <- date_list[date_list >= 2016]
-
-  # loop through the pairs and use a counter to see when you've reached 2022 - that counter == the index of the maximum element
-  max_date <- max(date_list)
+  pop_meta <- pop_meta[pop_meta$Collection_Year >= 2016, ]
 
   # store the results
-  pvalues_df <- data.frame(source = character(), before = double(), after = double(),
-                           Welch_pvalue = double(), Wilcox_pvalue = double(), lineage = double())
+  pvalues_df <- data.frame(matrix(ncol = 8, nrow = 0))
 
-  for (year in 1:length(date_list)) {
-    # we are effectively looping in pairs - so we are stopping at the second to last year
-    if (date_list[year] < max_date) {
+  # loop through the sources
+  for (source in c('all', 'Human', 'Animal')) {
 
-      # define before and after years
-      before <- date_list[year]
-      after <- date_list[year + 1]
+    # get the right subset of the dataset
+    if (source != 'all') pop_test <- pop_meta[pop_meta$Source == source,] else pop_test <- pop_meta
 
-      # subset the dataframe accrodingly
-      for (source in c('all', 'Human', 'Animal')) {
-        if (source == 'all') {
-          isolates_before <- pop_meta[pop_meta$Collection_Year == before,]
-          isolates_after <- pop_meta[pop_meta$Collection_Year == after,]
-        } else {
-          isolates_before <- pop_meta[(pop_meta$Collection_Year == before) & (pop_meta$Source == source),]
-          isolates_after <- pop_meta[(pop_meta$Collection_Year == after) & (pop_meta$Source == source),]
-        }
+    # compare the distributions of the amr/vf genes carried by isolates in every year
+    # pairwise t-tests, not paired, bonferroni correction, alternative hypothesis is 'less'
+    ttest_res <- pairwise_t_test(pop_test, NUM_FOUND ~ Collection_Year, p.adjust.method='bonferroni',
+                                 alternative='less', paired = FALSE)
 
-        # compare the distributions of the amr/vf genes carried by isolates in every year - they need to allow for vairable sample size
-        # welch's t-test and
-        # premeptive in case the first iteration raises an error
-        welch <- list()
-        tryCatch({ welch <- t.test(isolates_after$NUM_FOUND, mu=mean(isolates_before$NUM_FOUND), alternative="less") },
-                 error = function(e) { cat("ERROR :", conditionMessage(e), "\n", "dist", length(isolates_after$NUM_FOUND),
-                                           "mu", length(isolates_before$NUM_FOUND), "not enough data\n")
-                   welch$p.value <<- NaN })
-        # Mann-Whitney-Wilcoxon's test
-        wilcox <- list()
-        tryCatch({ wilcox <- wilcox.test(isolates_after$NUM_FOUND, mu=mean(isolates_before$NUM_FOUND), alternative="less") },
-                 error = function(e) { cat("ERROR :", conditionMessage(e), "\n", "dist", length(isolates_after$NUM_FOUND),
-                                           "mu", length(isolates_before$NUM_FOUND), "not enough data\n")
-                   wilcox$p.value <<- NaN })
+    ttest_res_sum <- ttest_res %>% select('group1', 'group2', 'n1', 'n2', 'p.adj', 'p.adj.signif')
 
-        # append to the p-values dataframe
-        test_vector <- c(source, before, after, welch$p.value, wilcox$p.value, lineage)
-        pvalues_df[nrow(pvalues_df) + 1,] <- test_vector
+    # add the lineage and the source labels
+    ttest_res_sum$lineage <- as.numeric(lineage)
+    ttest_res_sum$source <- source
 
-        # report the results
-        cat(paste('Comparing if the carriage of genes differs between', before, 'and', after,
-                  'for source', source, 'and cluster', lineage, '. Pvalue for the Welch t-test is', welch$p.value, 'and for the Wolcoxon test is',
-                  wilcox$p.value, "\n", sep = " "))
-      }
-    }
+    # append to the dataframe
+    pvalues_df <- rbind.data.frame(pvalues_df, ttest_res_sum)
+
+    # report results
+    cat(paste('Comparing if the carriage of genes differs among yearly cohorts for', source, 'and cluster',
+              lineage, "\n", sep = " "))
+
   }
+
+  # rename the columns to something meaningful
+  names(pvalues_df) <- c('year_1', 'year_2', 'n_1', 'n_2', 'p_adj', 'p_adj_signif', 'lineage', 'source')
 
   # write the table
   write.table(pvalues_df, file = table_out_name, quote = FALSE, row.names = FALSE, sep = "\t")
