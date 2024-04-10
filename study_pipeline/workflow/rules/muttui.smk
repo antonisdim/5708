@@ -40,26 +40,26 @@ rule get_chromosome_ref:
         "../scripts/get_chromosome_ref.py"
 
 
-rule run_muttui_def:
+rule run_muttui_no_label:
     input:
         aln="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec.fasta",
-        tree="muttui_{pathogen}/{pathogen}_{population}_{cluster}_iq_r.nwk",
-        ref="muttui_{pathogen}/{pathogen}_{cluster}_chr.fasta",
-        pos="muttui_{pathogen}/{pathogen}_{cluster}_pos.tsv",
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_rooted.nwk",
     log:
-        "muttui_{pathogen}/{pathogen}_{population}_{cluster}/muttui.log",
+        "muttui_{pathogen}/{pathogen}_{population}_{cluster}_no_label/muttui.log",
     output:
-        "muttui_{pathogen}/{pathogen}_{population}_{cluster}/all_included_mutations.csv",
+        "muttui_{pathogen}/{pathogen}_{population}_{cluster}_no_label/all_included_mutations.csv",
     message:
         "Running MutTui to get the mutational spectrum for {wildcards.pathogen} "
         "{wildcards.population} {wildcards.cluster}."
     conda:
         "../envs/biopython.yaml"
     params:
-        basename="muttui_{pathogen}/{pathogen}_{population}_{cluster}",
+        basename="muttui_{pathogen}/{pathogen}_{population}_{cluster}_no_label",
+    wildcard_constraints:
+        population="(cluster|population)",
     shell:
-        "(python ~/bin/MutTui-main/muttui/muttui.py  -a {input.aln} -t {input.tree} -r {input.ref} "
-        "-c {input.pos} -o {params.basename} --exclude_root_branches) &> {log}"
+        "(MutTui run --alignment {input.aln} --tree {input.tree} -o {params.basename} "
+        "--exclude_root_branches --all_sites) &> {log}"
 
 
 rule cluster_meta:
@@ -78,7 +78,7 @@ rule cluster_meta:
 rule run_muttui_label:
     input:
         aln="msa_{pathogen}/{pathogen}_{population}_{cluster}_chr_aln_nrec.fasta",
-        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_pruned.nwk",
+        tree="trees_{pathogen}/{pathogen}_{population}_{cluster}_iq_rooted.nwk",
         labels="muttui_{pathogen}/{pathogen}_{population}_{cluster}_tip_labels.csv",
     log:
         "muttui_{pathogen}/{pathogen}_{population}_{cluster}_label_tr/muttui.log",

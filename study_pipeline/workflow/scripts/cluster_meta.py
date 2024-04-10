@@ -7,7 +7,7 @@ __email__ = "ea.dimopoulos@gmail.com"
 __license__ = "MIT"
 
 
-from utilities import population_host_metadata
+from utilities import population_host_metadata, get_out_genome
 
 
 def cluster_meta(metadata_file, output_file, wild):
@@ -16,8 +16,13 @@ def cluster_meta(metadata_file, output_file, wild):
     # read the df
     meta_df = population_host_metadata(metadata_file)
 
+    # add outgroup
+    outgroup = get_out_genome(wild)
+
     # cluster df
-    cluster_df = meta_df[meta_df["cluster"] == int(wild.cluster)]
+    cluster_df = meta_df[
+        (meta_df["cluster"] == int(wild.cluster)) | (meta_df["sample"] == outgroup)
+    ]
 
     # write to file
     cluster_df[["sample", "Trait"]].to_csv(
