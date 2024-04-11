@@ -38,7 +38,7 @@ read_aln <- function(aln_file, set_no_out, sw = FALSE, tree = TRUE) {
 }
 
 
-population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE) {
+population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE, country = FALSE) {
   # read file with population metadata
   pop_meta <- read.csv(file = pop_metadata, sep = "\t", header = TRUE)
 
@@ -70,7 +70,13 @@ population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE) 
 
     trait_num_code <- setNames(c("SB27_Humans", "Context_America_Humans", "Rest_of_Context"),
                                c(1, 2, 3))
+  } else if (country) {
+    pop_meta$Trait <- pop_meta$Country
+
+    trait_num_code <- setNames(unique(pop_meta$Country),
+                               as.numeric(factor(unique(pop_meta$Country))))
   }
+
 
   pop_meta$Num_Trait <- names(trait_num_code)[match(pop_meta$Trait, trait_num_code)]
 
