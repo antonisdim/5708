@@ -20,6 +20,8 @@ library(hierfstat)
 library(pegas)
 library(reshape2)
 library(poppr)
+library(doParallel)
+library(foreach)
 
 # read the utility functions
 source("scripts/utilities.R")
@@ -28,6 +30,7 @@ source("scripts/utilities.R")
 window_size <- 1000
 overlap <- 900
 step <- window_size - overlap
+parallel_threads <- 12
 
 # sliding window Tajima D function
 sw_tajima_d_scan <- function(aln_rec_chr, outgroup, pop_meta) {
@@ -67,12 +70,16 @@ sw_fst_scan <- function(aln_rec_chr, outgroup, pop_meta) {
     # starting sequence
     starts <- if (dim(aln)[2] > window_size) seq(1, dim(aln)[2], by = step) else seq(1:1)
     n <- length(starts)
-    genome_bins <- list()
 
-    # start the SW
-    for (i in 1:n) {
+    # start the SW and define the number of parallel processes
+    registerDoParallel(parallel_threads)
+
+    genome_bins <- foreach(i=1:n) %dopar% {
         start <- if (length(starts) > 1) (starts[i]) else 1
         end <- if ((start + step - 1) < dim(aln)[2]) (start + step - 1) else dim(aln)[2]
+
+        # report progress
+        print(paste("the bin is", start, "and the iteration is", i, "\n", sep=' '))
         chunk <- DNAbin2genind(aln[,start:end])
         chunk_res <- list(NULL, NULL, NULL)
         # if the segment has either samples where all the positions are NA or they are monomorphic then this will fail
@@ -83,9 +90,9 @@ sw_fst_scan <- function(aln_rec_chr, outgroup, pop_meta) {
 
         # store an Fst matrix if successful, otherwise store NULL
         if (is.null(chunk_res[[2]])) {
-        genome_bins[i] <- list(NULL)
+            return(NULL)
         } else {
-        genome_bins[[i]] <- chunk_res[[2]]
+            return(chunk_res[[2]])
         }
      }
 
@@ -236,7 +243,7 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
         names(h_broad_res) <- c("Rec state", "Heritability (broad sense)")
 
         # write output table
-        write.table(h_broad_res, file=out_table, row.names=FALSE, quote=FALSE, sep='\t')
+        write.table(h_broad_res, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
     }
 
 }
