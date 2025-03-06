@@ -25,7 +25,13 @@ rule mlst:
     wildcard_constraints:
         dataset="(no|plus)",
     shell:
-        "mlst {input} --scheme {wildcards.pathogen} --nopath --label {wildcards.accession} 1> {output} 2> {log}"
+        'scheme=$"{wildcards.pathogen}";'
+        'if [[ "{wildcards.pathogen}" == "cjejuni" ]]; then'
+        '   scheme=$"campylobacter";'
+        "   mlst {input} --scheme $scheme --nopath --label {wildcards.accession} 1> {output} 2> {log};"
+        "else"
+        "   mlst {input} --scheme {wildcards.pathogen} --nopath --label {wildcards.accession} 1> {output} 2> {log};"
+        "fi"
 
 
 def get_mlst_paths(wildcards):

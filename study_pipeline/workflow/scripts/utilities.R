@@ -38,11 +38,11 @@ read_aln <- function(aln_file, set_no_out, sw = FALSE, tree = TRUE) {
 }
 
 
-population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE, country = FALSE) {
+population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE, country = FALSE, comp2019 = FALSE) {
   # read file with population metadata
   pop_meta <- read.csv(file = pop_metadata, sep = "\t", header = TRUE)
 
-  if (host) {
+  # define the host categories here so as to reuse them
     human <- c("Human")
     ruminant <- c("Beef", "Bovine", "Sheep", "Goat", "Ovine/Goat")
     avian <- c("Chicken", "Avian", "Crow", "Poultry", "Turkey")
@@ -52,6 +52,8 @@ population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE, 
     other <- c("Soil", "Water", "Water/River", "Soil/Dust", "ND/Other", "Laboratory", "Plant", "Animal-related",
                "Environment")
 
+  # group them based on the desired trait
+  if (host) {
     pop_meta$Trait[pop_meta$Host %in% human] <- "Human"
     pop_meta$Trait[pop_meta$Host %in% ruminant] <- "Ruminant"
     pop_meta$Trait[pop_meta$Host %in% avian] <- "Avian"
@@ -63,13 +65,49 @@ population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE, 
     trait_num_code <- setNames(c("Human", "Ruminant", "Avian", "Food", "Swine", "Other_mammal", "Other"),
                                c(1, 2, 3, 4, 5, 6, 7))
   } else if (humans) {
-    pop_meta$Trait <- "Rest_of_Context"
     pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "SB27"), 'Trait'] <- 'SB27_Humans'
     pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "Context") &
                (pop_meta$Country == "USA"), 'Trait'] <- 'Context_America_Humans'
+    pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "Context") &
+               (pop_meta$Country != "USA"), 'Trait'] <- 'Context_Other_Humans'
+    pop_meta$Trait[pop_meta$Host %in% ruminant] <- "Ruminant"
+    pop_meta$Trait[pop_meta$Host %in% avian] <- "Avian"
+    pop_meta$Trait[pop_meta$Host %in% food] <- "Food"
+    pop_meta$Trait[pop_meta$Host %in% swine] <- "Swine"
+    pop_meta$Trait[pop_meta$Host %in% other_mammal] <- "Other_mammal"
+    pop_meta$Trait[pop_meta$Host %in% other] <- "Other"
 
-    trait_num_code <- setNames(c("SB27_Humans", "Context_America_Humans", "Rest_of_Context"),
-                               c(1, 2, 3))
+    trait_num_code <- setNames(c("SB27_Humans", "Context_America_Humans", "Context_Other_Humans", "Ruminant", "Avian",
+                                 "Food", "Swine", "Other_mammal", "Other"),
+                               c(1, 2, 3, 4, 5, 6, 7, 8, 9))
+  } else if (comp2019) {
+    pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "SB27"), 'Trait'] <- 'SB27_Humans'
+    pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "Context") &
+               (pop_meta$Country == "USA"), 'Trait'] <- 'Context_America_Humans'
+    pop_meta[(pop_meta$Host == "Human") & (pop_meta$Dataset == "Context") &
+               (pop_meta$Country != "USA"), 'Trait'] <- 'Context_Other_Humans'
+    pop_meta$Trait[(pop_meta$Host %in% ruminant) & (pop_meta$Country == "USA") &
+                     (pop_meta$State == "USA:CA") & (pop_meta$year >= 2019)] <- "Ruminant_CA_post_2019"
+    pop_meta$Trait[(pop_meta$Host %in% ruminant) & (pop_meta$Country == "USA") &
+                     (pop_meta$State == "USA:CA") & (pop_meta$year < 2019)] <- "Ruminant_CA_pre_2019"
+    pop_meta$Trait[(pop_meta$Host %in% ruminant) & (pop_meta$State != "USA:CA")] <- "Ruminant_rest"
+    pop_meta$Trait[pop_meta$Host %in% avian & (pop_meta$Country == "USA") &
+                     (pop_meta$State == "USA:CA") & (pop_meta$year >= 2019)] <- "Avian_CA_post_2019"
+    pop_meta$Trait[pop_meta$Host %in% avian & (pop_meta$Country == "USA") &
+                     (pop_meta$State == "USA:CA") & (pop_meta$year < 2019)] <- "Avian_CA_pre_2019"
+    pop_meta$Trait[(pop_meta$Host %in% avian) & (pop_meta$State != "USA:CA")] <- "Avian_rest"
+    pop_meta$Trait[pop_meta$Host %in% swine & (pop_meta$Country == "USA") &
+                     (pop_meta$State == "USA:CA") & (pop_meta$year >= 2019)] <- "Swine_CA_post_2019"
+    pop_meta$Trait[pop_meta$Host %in% swine & (pop_meta$Country == "USA") &
+                     (pop_meta$State == "USA:CA") & (pop_meta$year < 2019)] <- "Swine_CA_pre_2019"
+    pop_meta$Trait[pop_meta$Host %in% swine & (pop_meta$State != "USA:CA")] <- "Swine_rest"
+    pop_meta$Trait[pop_meta$Host %in% food] <- "Food"
+    pop_meta$Trait[pop_meta$Host %in% other_mammal] <- "Other_mammal"
+    pop_meta$Trait[pop_meta$Host %in% other] <- "Other"
+
+    trait_num_code <- setNames(unique(pop_meta$Trait),
+                               as.numeric(factor(unique(pop_meta$Trait))))
+
   } else if (country) {
     pop_meta$Trait <- pop_meta$Country
 

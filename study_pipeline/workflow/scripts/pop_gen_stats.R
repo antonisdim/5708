@@ -195,9 +195,11 @@ heritability_calculate <- function(outgroup, aln_file, pop_meta) {
 pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_table) {
 
     # read file with population metadata
-    if (metric == 'swfst-human' | metric == 'tajima-human') {
+    if (metric == 'swfst-human' | metric == 'tajima-human' | metric == 'pairfst-human') {
         # the trait is human focused
         pop_meta <- population_host_metadata(pop_metadata, host = FALSE, humans = TRUE)
+    } else if (metric == 'pairfst-comp2019') {
+        pop_meta <- population_host_metadata(pop_metadata, host = FALSE, humans = FALSE, comp2019 = TRUE)
     } else {
         pop_meta <- population_host_metadata(pop_metadata)
     }
@@ -232,7 +234,7 @@ pop_gen_stats  <- function(outgroup, aln_file, pop_metadata, metric, output_tabl
 
         # write Fst summary output table
         write.table(fst_res, file=output_table, row.names=FALSE, quote=FALSE, sep='\t')
-    } else if (metric == 'pairfst') {
+    } else if (metric == 'pairfst' | metric == 'pairfst-human' | metric == 'pairfst-comp2019') {
         # write the pairwise WC Fst
         write.table(as.matrix(res_dist[[2]]), file=output_table, quote=FALSE, row.names=TRUE, sep="\t",
         append=TRUE)

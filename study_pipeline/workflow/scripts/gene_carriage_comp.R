@@ -88,8 +88,8 @@ gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb
     if (dim(pop_test)[1] == 0) next
 
     # compare the distributions of the amr/vf genes carried by isolates in every year
-    # pairwise t-tests, not paired, bonferroni correction, alternative hypothesis is 'less'
-    ttest_res <- pairwise_t_test(pop_test, real_found_genes ~ Collection_Year, p.adjust.method='bonferroni',
+    # pairwise t-tests, not paired, hochberg correction, alternative hypothesis is 'less'
+    ttest_res <- pairwise_t_test(pop_test, real_found_genes ~ Collection_Year, p.adjust.method='hochberg',
                                  alternative='less', paired = FALSE)
 
     ttest_res_sum <- ttest_res %>% select('group1', 'group2', 'n1', 'n2', 'p.adj', 'p.adj.signif')
