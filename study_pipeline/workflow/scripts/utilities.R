@@ -29,12 +29,13 @@ read_aln <- function(aln_file, set_no_out, sw = FALSE, tree = TRUE) {
   cat("The number of samples in the alignment is: ", dim(dna)[1], "\n")
   cat("the total length of the alignment is: ", dim(dna)[2], "\n")
 
-  # convert dna to genid and get the nucleotide matrix
-  genid_obj <- DNAbin2genind(dna)
-
   # based on if I am doing a sliding window either return the DNAbin object or the Genind object
-  aln_obj <- if (sw) dna else genid_obj
-  return(aln_obj)
+  if (sw) {
+    return(dna)
+  } else {
+    # convert dna to genid and get the nucleotide matrix
+    return(DNAbin2genind(dna))
+  }
 }
 
 
@@ -122,7 +123,7 @@ population_host_metadata <- function(pop_metadata, host = TRUE, humans = FALSE, 
 }
 
 
-parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
+parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort, res_type) {
   # subset the euclidean distribution dataframe to only keep SB27 (rows) vs Context samples (cols)
   meta <- population_host_metadata(metadata_df)
 
@@ -190,6 +191,17 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
                         (meta$year == 2019) &
                         (meta$Country == "USA") &
                         !(meta$State %in% c("USA:CA", "")),]
+  } else if (cohort == 'narms-cali-time') {
+    set_1 <- "Cali_NARMS_before2017"
+    set_2 <- "Cali_NARMS_after2019"
+    meta_set1 <- meta[(meta$Dataset == "Context") &
+                        (meta$year >= 2019) &
+                        (meta$Country == "USA") &
+                        (meta$State == "USA:CA"),,]
+    meta_set2 <- meta[(meta$Dataset == "Context") &
+                        (meta$year <= 2017) &
+                        (meta$Country == "USA") &
+                        (meta$State == "USA:CA"),]
   } else {
     stop("Options for this sample cohort haven't been coded yet. Either use sb27 or source.")
   }
@@ -208,7 +220,8 @@ parse_eucd <- function(eucd_df, metadata_df, dist_type, cohort) {
   # melt the dataframe
   eucd_melted <- melt(eucd_subset, id.vars = "sample")
   eucd_melted$dist <- dist_type
-  return(eucd_melted)
+
+  if (res_type == "alignment") {return(eucd_melted)} else {return(eucd_subset)}
 }
 
 

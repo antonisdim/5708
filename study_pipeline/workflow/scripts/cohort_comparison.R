@@ -6,83 +6,78 @@
 # allow for command line args
 args <- commandArgs(trailingOnly = TRUE)
 outgroup <- args[1]
-aln_file <- args[2]
+in_file <- args[2]
 pop_metadata <- args[3]
-hist_out_figure <- args[4]
-pval_out_table <- args[5]
-cohort <- args[6]
+cohort <- args[4]
+in_type <- args[5]
 
 # load libs
-library(adegenet)
-library(ape)
-library(tibble)
-library(reshape2)
-library(ggplot2)
-library(harmonicmeanp)
+suppressMessages(library(adegenet))
+suppressMessages(library(ape))
+suppressMessages(library(tibble))
+suppressMessages(library(reshape2))
+suppressMessages(library(dplyr))
 
 # read the utility functions
-source("scripts/utilities.R")
+source("../../../study_pipeline/workflow/scripts/utilities.R")
 
 # palette
 titipounamu <- c("#3E4331", "#AD6B17", "#66743B", "#D0C471", "#CCB62F", "#BAC4C2")
 
-cohort_comparison <- function(outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort) {
+# number of permutation
+n_perm <- 100
+
+cohort_comparison <- function(outgroup, in_file, pop_metadata, cohort, in_type) {
 
   # read aln data from file:
-  genind_obj <- read_aln(aln_file, outgroup, tree = FALSE)
+  if (in_type == 'alignment') {
+    genind_obj <- read_aln(in_file, outgroup, tree = FALSE)
 
-  # get the euclidean distances
-  euclidean_dist <- dist(genind_obj, method = "euclidean", diag = TRUE, upper = TRUE, p = 2)
+    # get the euclidean distances
+    euclidean_dist <- dist(genind_obj, method = "euclidean", diag = TRUE, upper = TRUE, p = 2)
 
-  # turn the dist object into a melted dataframe
-  eucd_df <- as.data.frame(as.matrix(euclidean_dist, labels = TRUE))
-  eucd_obs <- parse_eucd(eucd_df, pop_metadata, "Observed distribution", cohort)
+    # turn the dist object into a melted dataframe
+    dist_df <- as.data.frame(as.matrix(euclidean_dist, labels = TRUE))
 
-  # define an empty dataset to store p-values and randomised euclidean distance datasets
-  pvalues_df <- data.frame(iter = character(), Welch_pvalue = double(), Wilcox_pvalue = double())
-  randomised_distances_list <- list()
+  } else {
+     # read a distance matrix straight away
+    dist_df <- read.csv(in_file, sep='\t', header=TRUE) %>% select(-X.)
+
+    # redifine the row names
+    rownames(dist_df) <- names(dist_df)
+  }
+
+  # get the dataframe for the observed distribution
+  dist_obs <- parse_eucd(dist_df, pop_metadata, "Observed distribution", cohort, in_type)
+
+  # get the observed D(a, b)
+  observed_dist <- mean(as.matrix(dist_obs %>% select(-sample)))
+
+  # define a list to store the permuted D(a, b)
+  perm_dists <- numeric(n_perm)
 
   # in a for loop this
   for (iter in 1:100) {
-    eucd_iter <- eucd_df
-    colnames(eucd_iter) <- sample(colnames(eucd_iter))
-    eucd_rand <- parse_eucd(eucd_iter, pop_metadata, "Random sample", cohort)
+    dist_iter <- dist_df
+    colnames(dist_iter) <- sample(colnames(dist_iter))
+    rownames(dist_iter) <- sample(rownames(dist_iter))
+    dist_rand <- parse_eucd(dist_iter, pop_metadata, "Permuted distribution", cohort, in_type)
 
-    # calculate welch's t-test and Mann-Whitney-Wilcoxon's test
-    welch <- t.test(eucd_obs$value, eucd_rand$value)
-    wilcox <- wilcox.test(eucd_obs$value, eucd_rand$value)
+    perm_dists[iter] <- mean(as.matrix(dist_rand %>% select(-sample)))
+    }
 
-    test_vector <- c(iter, welch$p.value, wilcox$p.value)
-    pvalues_df[nrow(pvalues_df) + 1,] <- test_vector
+  # Calculate empirical p-value
+  p_value_empirical <- sum(perm_dists >= observed_dist) / n_perm
 
-    # for plots
-    compare <- rbind(eucd_rand, eucd_obs)
-    compare$iter <- iter
+  # use randtest to get a p-value
+  rand_test_res <- as.randtest(sim = perm_dists, obs = observed_dist, alter = "greater")
+  p_value_randtest <- rand_test_res$pvalue
 
-    randomised_distances_list[[iter]] <- compare
-  }
-
-  # construct dataframe of iterations to plot
-  distances_comparison <- do.call(rbind, randomised_distances_list)
-
-  eucd_comparison_histogram <- ggplot(data = distances_comparison, aes(x = value, fill = dist)) +
-    geom_histogram(alpha = 0.9) +
-    theme_minimal() +
-    xlab("Euclidean distance") +
-    scale_fill_manual(values = titipounamu) +
-    theme(plot.title = element_text(size = 12, hjust = 0.5)) +
-    facet_wrap(~iter)
-
-  ggsave(hist_out_figure, eucd_comparison_histogram, width = 12, height = 12)
-
-  #calculate the harmonic mean of the p-values from each iteration
-  pval_total_vector <- c("total", p.hmp(big_exponent_limits(pvalues_df$Welch_pvalue), w = NULL, L = 100),
-                         p.hmp(big_exponent_limits(pvalues_df$Wilcox_pvalue), w = NULL, L = 100))
-  pvalues_df[nrow(pvalues_df) + 1,] <- pval_total_vector
-
-  write.table(pvalues_df, file = pval_out_table, quote = FALSE, row.names = FALSE, sep = "\t")
+  # print the results
+  cat(paste("Cohort", "D(a, b) obs", "D(a, b) perm", "D(a, b) p-value", sep='\t'), "\n")
+  cat(paste(cohort, observed_dist, mean(perm_dists), round(p_value_randtest, 2), sep='\t'), "\n")
 }
 
 # run the function
-cohort_comparison(outgroup, aln_file, pop_metadata, hist_out_figure, pval_out_table, cohort)
+cohort_comparison(outgroup, in_file, pop_metadata, cohort, in_type)
 

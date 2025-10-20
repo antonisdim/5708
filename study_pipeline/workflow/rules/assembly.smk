@@ -29,7 +29,7 @@ rule spades_assembly:
     shell:
         "( spades.py -1 {input.fastq_r1} -2 {input.fastq_r2} -o {params.outdir} --threads 1 --careful && "
         "mv {params.outdir}/contigs.fasta {output.contigs}; "
-        "mv {params.outdir}/scaffolds.fasta {output.scaffolds} ) 2> {log}"
+        "mv {params.outdir}/scaffolds.fasta {output.scaffolds} ) &> {log}"
 
 
 def get_assemblies(_):
