@@ -73,7 +73,7 @@ c36 <- c(
 # define a basename for the outputs
 outfile_base <- tools::file_path_sans_ext(basename(gene_table))
 
-# start producing produce the area curves for the dataset
+# start producing the area curves for the dataset
 
 gene_df <- read.csv(gene_table, sep='\t', header=TRUE)
 gene_counts <- gene_df[, c('X.FILE' ,'NUM_FOUND')]

@@ -14,7 +14,6 @@ lineage <- args[5]
 # load libs
 suppressMessages(library(tidyverse))
 suppressMessages(library(reshape2))
-suppressMessages(library(harmonicmeanp))
 suppressMessages(library(ggplot2))
 suppressMessages(library(rstatix))
 
@@ -26,7 +25,7 @@ PREVALENCE <- 0.90
 gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb27, lineage) {
 
   # check this sb27 argument is correct
-  if (!(sb27 %in% c('all', 'sb27', 'sb27_strict', 'sb27_inv'))) stop("It is either all or sb27")
+  if (!(sb27 %in% c('all', 'sb27', 'sb27_strict', 'sb27_inv', 'sb27_animal'))) stop("It is either all or sb27")
 
   # read the pop metadata file
   pop_meta <- population_host_metadata(pop_metadata)
@@ -66,6 +65,9 @@ gene_carriage_comp <- function(pop_metadata, abricate_report, table_out_name, sb
 
   # inverse means keep only animals bought in California that were imported
   if (sb27 == 'sb27_inv') pop_meta <- pop_meta %>% filter(Dataset == 'SB27' & Source == 'Animal' & CA == 0)
+
+  # animal mode - only animals that were sequenced as part of SB27
+  if (sb27 == 'sb27_animal') pop_meta <- pop_meta %>% filter(Dataset == 'SB27' & Source == 'Animal')
 
   # select a lineage
   if (as.numeric(lineage) != 1000) pop_meta <- pop_meta[pop_meta$cluster == as.numeric(lineage),]
