@@ -8,6 +8,7 @@ __license__ = "MIT"
 
 import pandas as pd
 import csv
+import os
 
 SAMPLE_TABLE = "aux_files/samples.tsv"
 CONT_SAMPLE_TABLE = "aux_files/excluded_samples.tsv"
@@ -18,13 +19,15 @@ TIME_INTERVAL = 4
 CLOCK_RATE_TABLE = "aux_files/clock_rates.tsv"
 
 
-def read_sample_list():
+def read_sample_list(infile):
     """Read the user sample table"""
 
+    input_file = infile if os.path.isfile(infile) else SAMPLE_TABLE
+
     samples = pd.read_csv(
-        SAMPLE_TABLE,
+        input_file,
         sep="\t",
-        names=["Sample_Acc", "Species", "Data_source"],
+        names=["Sample_Acc", "Species", "Data_source", "Read_mode"],
     )
 
     return samples
@@ -195,12 +198,10 @@ def get_out_genome(wildcards):
 def get_read_file(wildcards, mate):
     """Get the relative path to the R1 read file"""
 
-    sb27_samples = read_sample_list()
-
-    if wildcards.sample in sb27_samples["Sample_Acc"].values:
+    if wildcards.read_mode == "PE":
         sam_path = f"adRm/{wildcards.sample}_R{mate}_adRm.fastq.gz"
     else:
-        sam_path = f"sra_context_ecoli/{wildcards.sample}_R{mate}_adRm.fastq.gz"
+        sam_path = f"adRm/{wildcards.sample}_adRm.fastq.gz"
 
     return sam_path
 
@@ -208,7 +209,11 @@ def get_read_file(wildcards, mate):
 def get_r1(wildcards):
     """Get the relative path to the R1 read file"""
 
-    return get_read_file(wildcards, "1")
+    return (
+        get_read_file(wildcards, "1")
+        if wildcards.read_mode == "PE"
+        else get_read_file(wildcards, "0")
+    )
 
 
 def get_r2(wildcards):
@@ -224,9 +229,7 @@ def get_clusters_to_run(wildcards):
         REF_GENOME_TABLE,
         sep="\t",
     )
-    ref_genomes = ref_genomes.loc[
-        ref_genomes["Species"] == wildcards.pathogen,
-    ]
+    ref_genomes = ref_genomes.loc[ref_genomes["Species"] == wildcards.pathogen,]
 
     clusters = ref_genomes["Cluster"].unique().tolist()
     if len(clusters) > 1:

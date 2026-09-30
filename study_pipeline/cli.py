@@ -13,59 +13,35 @@ import os
 import shutil
 import sys
 from multiprocessing import cpu_count
+from workflow.scripts.utilities import read_sample_list
 
 import snakemake
 import yaml
+import pandas as pd
 from psutil import virtual_memory
-from snakemake.dag import Batch
-
-from haystac import __version__
-from haystac.workflow.scripts.entrez_utils import (
-    ENTREZ_RATE_LOW,
-    ENTREZ_RATE_HIGH,
-)
-from haystac.workflow.scripts.utilities import (
-    ValidationError,
-    ArgumentCustomFormatter,
-    WritablePathType,
-    FloatRangeType,
-    IntRangeType,
-    BoolType,
-    JsonType,
-    SequenceFileType,
-    AccessionFileType,
-    SraAccessionType,
-    NuccoreQueryType,
-    CheckExistingConfig,
-    BatchType,
-    FastqFile,
-    PE,
-    COLLAPSED,
-    SE,
-    md5,
-    print_warning,
-    print_error,
+from snakemake.api import SnakemakeApi
+from snakemake.settings.types import (
+    ConfigSettings,
+    DAGSettings,
+    DeploymentMethod,
+    DeploymentSettings,
+    OutputSettings,
+    ResourceSettings,
+    StorageSettings,
+    WorkflowSettings,
+    Batch
 )
 
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
 MAX_CPU = cpu_count()
-MAX_MEM_MB = int(virtual_memory().total / 1024 ** 2)
+MAX_MEM_MB = int(virtual_memory().total / 1024**2)
 
 CODE_DIR = os.path.abspath(os.path.dirname(__file__))
 SNAKE_DIR = ".snakemake"
 
-CONFIG_DEFAULT = f"{CODE_DIR}/config/config.yaml"
-CONFIG_USER = os.path.abspath(os.path.expanduser("~/.haystac/config.yaml"))
-CONFIG_RUNTIME = f"{SNAKE_DIR}/config.yaml"
-
-COMMANDS = ["config", "database", "sample", "analyse"]
-
-DATABASE_MODES = ["fetch", "index", "build"]
-ANALYSIS_MODES = ["filter", "align", "likelihoods", "probabilities", "abundances", "reads"]
-TAXONOMIC_RANKS = ["genus", "species", "subspecies", "serotype"]
-REFSEQ_TABLES = ["prokaryote_rep", "viruses", "eukaryotes"]
+COMMANDS = ["config", "adapters", "assemblies", "alignments"]
 
 # number to times to retry a rule that failed the first time
 RESTART_TIMES = 2
@@ -78,13 +54,14 @@ class Pathomancer(object):
 
     def __init__(self):
         parser = argparse.ArgumentParser(
-            usage="""haystac <command> [<args>]
+            usage="""pathomancer <command> [<args>]
 
-The haystac commands are:
-   assemblies         Configuration options
-   alignments       Build a database of target species
-   trees         Prepare a sample for analysis
-   stats        Analyse a sample against a database
+The pathomancer commands are:
+   config       General configuration
+   adapters     Remove adapters from raw illumina reads
+   assemblies   Assemble samples
+   alignemnts   Align reads against reference genomes
+
 
 """,
         )
@@ -93,16 +70,16 @@ The haystac commands are:
         # get the CLI arguments
         args = self._parse_args(parser, level=1)
 
-        # load the config files
-        self._load_config()
+        # # load the config files
+        # self._load_config()
 
         try:
             # call the class method with the name given by `command`
             reval = getattr(self, args.command)()
             exit(reval)
 
-        except ValidationError as error:
-            print_error(f"{error}")
+        except ValueError:  # todo remove
+            print(ValueError)
 
     @staticmethod
     def _parse_args(parser, level=1):
@@ -116,7 +93,8 @@ The haystac commands are:
             parser.exit()
 
         if {"-v", "--version"}.intersection(sys.argv):
-            print(__version__)
+            #            print(__version__) todo bring the versioning back when I package it
+            print("1.0.0")
             parser.exit()
 
         # slice the CLI arguments
@@ -124,7 +102,7 @@ The haystac commands are:
 
         return parser.parse_args(argv)
 
-    def _load_config(self):
+    def _load_config(self):  # todo think about what I want the config to include
         """
         Load the default and user space config files.
         """
@@ -134,7 +112,9 @@ The haystac commands are:
             self.config_default = yaml.safe_load(fin)
 
             # resolve relative paths
-            self.config_default["cache"] = os.path.abspath(os.path.expanduser(self.config_default["cache"]))
+            self.config_default["cache"] = os.path.abspath(
+                os.path.expanduser(self.config_default["cache"])
+            )
 
         try:
             # load the user config
@@ -150,231 +130,37 @@ The haystac commands are:
         # merge the config dictionaries (giving precedence to the config_user)
         self.config_merged = {**self.config_default, **self.config_user}
 
-    def config(self):
-        """
-        Configuration options
-        """
-        # noinspection PyTypeChecker
-        parser = argparse.ArgumentParser(
-            prog="haystac config",
-            description="Configuration options",
-            formatter_class=ArgumentCustomFormatter,
-            add_help=False,
-        )
-
-        optional = parser.add_argument_group("Optional arguments")
-
-        # add the help option manually so we can control where it is shown in the menu
-        optional.add_argument("-h", "--help", action="help", help="Show this help message and exit")
-        optional.add_argument("-v", "--version", action="help", help="Print the version number and exit")
-
-        optional.add_argument(
-            "--cache",
-            help=f"Cache folder for storing genomes downloaded from NCBI and other shared data "
-                 f"(default: {self.config_default['cache']})",
-            metavar="<path>",
-            type=WritablePathType(),
-            default=argparse.SUPPRESS,
-        )
-
-        optional.add_argument(
-            "--clear-cache",
-            help="Clear the contents of the cache folder, and delete the folder itself",
-            action="store_true",
-        )
-
-        optional.add_argument(
-            "--api-key",
-            help=f"Personal NCBI API key (increases max concurrent requests from {ENTREZ_RATE_LOW} to "
-                 f"{ENTREZ_RATE_HIGH}, https://www.ncbi.nlm.nih.gov/account/register/)",
-            metavar="<code>",
-            default=argparse.SUPPRESS,
-        )
-
-        optional.add_argument(
-            "--use-conda",
-            help=f"Use conda as a package manger (default: {self.config_default['use_conda']})",
-            type=BoolType(),
-            metavar="<bool>",
-            default=argparse.SUPPRESS,
-        )
-
-        # get the CLI arguments
-        args = self._parse_args(parser, level=2)
-
-        # get the user choices
-        for key, value in vars(args).items():
-            self.config_user[key] = value
-
-        # resolve relative paths
-        if self.config_user.get("cache"):
-            self.config_user["cache"] = os.path.abspath(os.path.expanduser(self.config_user["cache"]))
-
-        # clear the cache directory if specified
-        if self.config_user.get("clear_cache"):
-            shutil.rmtree(self.config_user["cache"])
-            # delete the clear_cache key, so that the cache is not cleared every time unless the user specifies it
-            del self.config_user["clear_cache"]
-
-        # save the user config
-        with open(CONFIG_USER, "w") as fout:
-            yaml.safe_dump(self.config_user, fout, default_flow_style=False)
-
-    def database(self):
+    def adapters(self):
         """
         Build a database of target species
         """
         # noinspection PyTypeChecker
         parser = argparse.ArgumentParser(
-            prog="haystac database",
-            description="Build a database of target species",
-            formatter_class=ArgumentCustomFormatter,
+            prog="pathomancer adapter trimming",
+            description="Trim sequencing adapters from raw short reads",
             add_help=False,
-        )
-
-        required = parser.add_argument_group("Required arguments")
-
-        required.add_argument(
-            "--mode",
-            help="Database creation mode for haystac [%(choices)s]",
-            metavar="<mode>",
-            choices=DATABASE_MODES,
-            required=True,
-        )
-
-        required.add_argument(
-            "--output",
-            help="Path to the database output directory",
-            metavar="<path>",
-            dest="db_output",
-            type=WritablePathType(),
-            required=True,
         )
 
         choice = parser.add_argument_group("Required choice")
 
         choice.add_argument(
-            "--query",
-            help="Database query in the NCBI query language. "
-                 "Please refer to the documentation for assistance with constructing a valid query.",
-            metavar="<query>",
-            type=NuccoreQueryType(),
+            "--sample-name",
+            help="Name of the sample",
+            metavar="<string>",
         )
 
         choice.add_argument(
-            "--query-file",
-            help="File containing a database query in the NCBI query language.",
+            "--read-mode",
+            help="Paired or single end reads",
+            metavar="<PE/SE>",
+            # dest="db_output",
+            # type=WritablePathType(),
+        )
+
+        choice.add_argument(
+            "--sample-file",
+            help="Tab delimited file containing sample information",
             metavar="<path>",
-            type=NuccoreQueryType(),
-        )
-
-        choice.add_argument(
-            "--accessions-file",
-            dest="accessions",
-            help="Tab delimited file containing one record per row: the name of the taxon, "
-                 "and a valid NCBI accession code from the nucleotide, assembly or WGS databases.",
-            metavar="<path>",
-            type=AccessionFileType(),
-        )
-
-        choice.add_argument(
-            "--sequences-file",
-            dest="sequences",
-            help="Tab delimited file containing one record per row: the name of the taxon, a user defined "
-                 "accession code, and the path to the fasta file (optionally compressed).",
-            metavar="<path>",
-            type=SequenceFileType(),
-        )
-
-        choice.add_argument(
-            "--refseq-rep",
-            help="Use one of the RefSeq curated tables to construct a DB. Includes all prokaryotic species "
-                 "(excluding strains) from the representative RefSeq DB, or all the species and strains from the "
-                 "viruses DB, or all the species and subspecies from the eukaryotes DB. "
-                 "If multiple accessions exist for a given species/strain, the first pair of species/accession is kept. "
-                 "Available RefSeq tables to use [%(choices)s].",
-            choices=REFSEQ_TABLES,
-            metavar="<table>",
-            default=None,
-        )
-
-        optional = parser.add_argument_group("Optional arguments")
-
-        optional.add_argument(
-            "--force-accessions",
-            help="Disable validation checks for 'anomalous' assembly flags in NCBI",
-            action="store_true",
-        )
-
-        optional.add_argument(
-            "--exclude-accessions",
-            help="List of NCBI accessions to exclude.",
-            metavar="<accession>",
-            nargs="+",
-            default=[],
-        )
-
-        optional.add_argument(
-            "--resolve-accessions",
-            help="Pick the first accession when two accessions for a taxon can be found in user provided input files",
-            action="store_true",
-        )
-
-        optional.add_argument(
-            "--bowtie2-scaling",
-            help="Rescaling factor to keep the bowtie2 mutlifasta index below the maximum memory limit",
-            type=FloatRangeType(0, 100),
-            metavar="<float>",
-            default=self.config_default["bowtie2_scaling"],
-        )
-
-        optional.add_argument(
-            "--bowtie2-threads",
-            help="Number of threads bowtie2 will use to index every individual genome in the database",
-            type=IntRangeType(1, MAX_CPU),
-            metavar="<int>",
-            dest="bowtie2_threads_db",
-            default=self.config_default["bowtie2_threads_db"],
-        )
-
-        optional.add_argument(
-            "--rank",
-            help="Taxonomic rank to perform the identifications on [%(choices)s]",
-            metavar="<rank>",
-            choices=TAXONOMIC_RANKS,
-            default=self.config_default["rank"],
-        )
-
-        optional.add_argument(
-            "--genera",
-            help="List of genera to restrict the abundance calculations.",
-            metavar="<genus>",
-            nargs="+",
-            default=None,
-        )
-
-        optional.add_argument(
-            "--mtDNA",
-            help="For eukaryotes, download mitochondrial genomes only. "
-                 "Not to be used with --refseq-rep or queries containing prokaryotes",
-            action="store_true",
-        )
-
-        optional.add_argument(
-            "--seed",
-            help="Random seed for database indexing",
-            metavar="<int>",
-            type=int,
-            default=self.config_default["seed"],
-        )
-
-        optional.add_argument(
-            "--batch",
-            help="Batch number for large`haystac database` workflows (e.g. --batch index_all_accessions=1/3). "
-                 "You will need to execute all batches before haystac is able to finish its workflow to the end.",
-            metavar="<str>",
-            type=BatchType(),
-            default=None,
         )
 
         # add the common arguments
@@ -383,113 +169,125 @@ The haystac commands are:
         # get the CLI arguments
         args = self._parse_args(parser, level=2)
 
-        # must specify at least one source for the database
-        if args.mode != "index" and not (
-            args.refseq_rep or args.query or args.query_file or args.accessions or args.sequences
-        ):
-            raise ValidationError(
-                "Please specify at least one of --refseq-rep, --query, --query-file, --accessions or --sequences"
-            )
-
-        if args.mtDNA and args.refseq_rep:
-            raise ValidationError("Please specify either `--mtDNA` or `--refseq-rep` but not both.")
-
-        if args.query and args.query_file:
-            raise ValidationError("Please specify either `--query <query>` or `--query-file <path>` but not both.")
-
-        if args.query_file:
-            # load the query file
-            with open(args.query_file) as fin:
-                args.query = fin.read().strip()
-
-        # warn the user in case he is selecting only one thread for bt2 accession indexing
-        if args.bowtie2_threads_db == 1:
-            print_warning(
-                "Please note that when bowtie2 uses only 1 thread for indexing its memory usage tends "
-                "to be higher than when it is multithreaded. That means that HAYSTAC could end up using "
-                "more memory than it is desired. Please be cautious when using only 1 thread "
-                "for indexing individual genomes."
-            )
-
-        db_original = args.db_output
-
-        # resolve relative paths
-        args.db_output = os.path.abspath(os.path.expanduser(args.db_output))
-
-        # cast all `None` paths as "" or else smk complains when parsing the rules
-        args.query_file = args.query_file or ""
-        args.accessions = args.accessions or ""
-        args.sequences = args.sequences or ""
-
         # add all command line options to the merged config
-        # noinspection PyDictCreation
-        config = {**self.config_merged, **vars(args)}
-
-        # store the md5 checksums for the database user input files
-        config["query_file_md5"] = md5(args.query_file) if args.query_file else ""
-        config["accessions_md5"] = md5(args.accessions) if args.query_file else ""
-        config["sequences_md5"] = md5(args.sequences) if args.query_file else ""
-
-        config_fetch = os.path.join(args.db_output, "database_fetch_config.yaml")
-        config_build = os.path.join(args.db_output, "database_build_config.yaml")
-
-        if args.refseq_rep:
-            if not args.force_accessions:
-                print_warning("Automatically setting `--force-accessions` in `--refseq-rep` mode")
-
-            config["force_accessions"] = True
+        # config = {**self.config_merged, **vars(args)}
+        config = {**vars(args)}
 
         target_list = list()
 
-        if args.mode == "fetch":
-            if args.query or args.accessions or args.sequences or args.refseq_rep or args.query_file:
-                target_list.append("db_taxa_accessions.tsv")
-
-            CheckExistingConfig(config_fetch, config)
-
-            with open(config_fetch, "w") as fout:
-                yaml.safe_dump(config, fout, default_flow_style=False)
-
-        elif args.mode == "index":
-            target_list.append("bowtie/bowtie_index.done")
-            target_list.append("idx_database.done")
-
-            try:
-                with open(config_fetch, "r") as fin:
-                    # config = {**yaml.safe_load(fin), **config}
-                    fetch_args = {**yaml.safe_load(fin)}
-                    fetch_args.update((k, v) for k, v in config.items() if v is not None)
-                    config = fetch_args
-
-                    CheckExistingConfig(config_fetch, config)
-            except FileNotFoundError:
-                raise ValidationError(
-                    "Please run haystac `database --mode fetch` before attempting to index the database."
+        if (config["sample_file"] is not None) and (
+            os.path.isfile(config["sample_file"])
+        ):
+            # todo add a validation check for input file
+            target_samples = read_sample_list(config["sample_file"])
+            target_list = [
+                f"adRm/{s}_{m}.size"
+                for s, m in zip(
+                    target_samples["Sample_Acc"], target_samples["Read_mode"]
                 )
+            ]
 
-        elif args.mode == "build":
-            target_list.append("idx_database.done")
-            target_list.append("bowtie/bowtie_index.done")
-            target_list.append("db_taxa_accessions.tsv")
+        elif (config["sample_name"] is not None) and (config["read_mode"] is not None):
+            target_list.append(
+                f"adRm/{config['sample_name']}_{config['read_mode']}.size"
+            )
 
-            if os.path.exists(config_fetch):
-                raise ValidationError(
-                    "Please run haystac `database --mode index` as the database has already been fetched."
+        else:
+            raise ValueError("Invalid flag combo")
+
+        # run the `pathomancer` workflow
+        exit_code = self._run_snakemake("adapters", args, config, target_list)
+
+        return exit_code
+
+    def alignments(self):
+        """
+        Build a database of target species
+        """
+        # noinspection PyTypeChecker
+        parser = argparse.ArgumentParser(
+            prog="pathomancer read alignment",
+            description="Align reads against reference genomes",
+            add_help=False,
+        )
+
+        choice = parser.add_argument_group("Required choice")
+
+        choice.add_argument(
+            "--sample-name",
+            help="Name of the sample",
+            metavar="<string>",
+        )
+
+        choice.add_argument(
+            "--read-mode",
+            help="Paired or single end reads",
+            metavar="<PE/SE>",
+            # dest="db_output",
+            # type=WritablePathType(),
+        )
+
+        choice.add_argument(
+            "--species",
+            help="Short code for species",
+            metavar="<species>",
+            # dest="db_output",
+            # type=WritablePathType(),
+        )
+
+        choice.add_argument(
+            "--lineage",
+            help="Focus on specific lineage (lineage 1000 if the user wants to focus on species level",
+            metavar="<lineage number>",
+            # dest="db_output",
+            # type=WritablePathType(),
+        )
+
+        choice.add_argument(
+            "--sample-file",
+            help="Tab delimited file containing sample information",
+            metavar="<path>",
+        )
+
+        choice.add_argument(
+            "--reference-genome",
+            help="String OR Tab delimited file containing reference genome information",
+            metavar="<path>",
+        )
+
+        # add the common arguments
+        self._common_arguments(parser)
+
+        # get the CLI arguments
+        args = self._parse_args(parser, level=2)
+
+        # add all command line options to the merged config
+        # config = {**self.config_merged, **vars(args)}
+        config = {**vars(args)}
+
+        target_list = list()
+        if (config["sample_file"] is not None) and (
+            os.path.isfile(config["sample_file"])
+        ):
+            # todo add a validation check for input file
+            target_samples = read_sample_list(config["sample_file"])
+            target_list = [
+                f"bt2_alignments_{p}/{s}_ref_{config['reference_genome']}_{m}.bam"
+                for s, p, m in zip(
+                    target_samples["Sample_Acc"], target_samples["Species"], target_samples["Read_mode"]
                 )
+            ]
 
-            if os.path.exists(config_build):
-                CheckExistingConfig(config_build, config)
+        elif (config["sample_name"] is not None) and (config["read_mode"] is not None):
+            target_list.append(
+                f"bt2_alignments_{config['species']}/{config['sample_name']}_ref_{config['reference_genome']}_{config['read_mode']}.bam"
+            )
 
-            with open(config_build, "w") as fout:
-                yaml.safe_dump(config, fout, default_flow_style=False)
+        else:
+            raise ValueError("Invalid flag combo")
 
-        target_list = [os.path.join(args.db_output, target) for target in target_list]
-
-        # run the `haystac` workflow
-        exit_code = self._run_snakemake("database", args, config, target_list)
-
-        if args.mode == "fetch" and exit_code == 0 and not args.unlock:
-            print(f"Please run `haystac database --mode index --output {db_original}` after this step.")
+        # run the `pathomancer` workflow
+        exit_code = self._run_snakemake("alignments", args, config, target_list)
 
         return exit_code
 
@@ -500,22 +298,26 @@ The haystac commands are:
         common = parser.add_argument_group("Common arguments")
 
         # add the help option manually so we can control where it is shown in the menu
-        common.add_argument("-h", "--help", action="help", help="Show this help message and exit")
-        common.add_argument("-v", "--version", action="help", help="Print the version number and exit")
+        common.add_argument(
+            "-h", "--help", action="help", help="Show this help message and exit"
+        )
+        common.add_argument(
+            "-v", "--version", action="help", help="Print the version number and exit"
+        )
 
         common.add_argument(
             "--cores",
             help="Maximum number of CPU cores to use",
             metavar="<int>",
-            type=IntRangeType(1, MAX_CPU),
-            default=MAX_CPU if self.config_default["cores"] == "all" else self.config_default["cores"],
+            # type=IntRangeType(1, MAX_CPU),
+            default=8,
         )
 
         common.add_argument(
             "--mem",
             help="Maximum memory (MB) to use",
-            type=IntRangeType(1024, MAX_MEM_MB),
-            default=MAX_MEM_MB if self.config_default["mem"] == "all" else self.config_default["mem"],
+            # type=IntRangeType(1024, MAX_MEM_MB),
+            # default=MAX_MEM_MB if self.config_default["mem"] == "all" else self.config_default["mem"],
             metavar="<int>",
         )
 
@@ -535,21 +337,21 @@ The haystac commands are:
             "--snakemake",
             help="Pass additional flags to the `snakemake` scheduler.",
             metavar="'<json>'",
-            type=JsonType(),
+            # type=JsonType(),
         )
-
 
     def _run_snakemake(self, module, args, config, target_list):
         """
         Helper function for running the snakemake workflow
         """
-        print(f"HAYSTAC v {__version__}\n")
+        # print(f"HAYSTAC v {__version__}\n")
         print(f"Date: {datetime.datetime.now()}\n")
 
         config["module"] = module
         config["workflow_dir"] = os.path.join(CODE_DIR, "workflow")
 
         print("Config parameters:\n")
+        print(module)
         params = config if args.debug else vars(args)
 
         for key, value in params.items():
@@ -563,51 +365,56 @@ The haystac commands are:
                 print(" " + target)
             print("\n")
 
-        try:
-            os.makedirs(SNAKE_DIR, exist_ok=True)
-        except PermissionError:
-            print_error("Cannot write to the current working directory.")
+        # try:
+        #     os.makedirs(SNAKE_DIR, exist_ok=True)
+        # except PermissionError:
+        #     print_error("Cannot write to the current working directory.")
 
-        # save the run-time config file
-        with open(CONFIG_RUNTIME, "w") as fout:
-            yaml.safe_dump(config, fout, default_flow_style=False)
+        # # save the run-time config file
+        # with open(CONFIG_RUNTIME, "w") as fout:
+        #     yaml.safe_dump(config, fout, default_flow_style=False)
 
-        # get any extra snakemake params
-        smk_params = config.pop("snakemake") or {}
+        # # get any extra snakemake params
+        # smk_params = config.pop("snakemake") or {}
 
-        # get any rule targets for batching and convert them into a compatible object
-        exec_batch = Batch(config["batch"][0], config["batch"][1], config["batch"][2]) if config.get("batch") else None
-        if config.get("batch"):
-            config.pop("batch")
+        # # get any rule targets for batching and convert them into a compatible object
+        # exec_batch = Batch(config["batch"][0], config["batch"][1], config["batch"][2]) if config.get("batch") else None
+        # if config.get("batch"):
+        #     config.pop("batch")
+        with SnakemakeApi(
+                OutputSettings(
+                    verbose=args.debug,
+                    show_failed_logs=args.debug,
+                    printshellcmds=args.debug,
+                ),
+        ) as snakemake_api:
+            workflow_api = snakemake_api.workflow(
+                storage_settings=StorageSettings(),
+                resource_settings=ResourceSettings(
+                    cores=int(args.cores),
+                ),
+                config_settings=ConfigSettings(config=config),
+                deployment_settings=DeploymentSettings(
+                    deployment_method={DeploymentMethod.CONDA},
+                    conda_prefix=os.path.join("pathomancer_cache", "conda"),
+                ),
+                snakefile=os.path.join("workflow/workflow.smk"),
+            )
 
-        success = snakemake.snakemake(
-            snakefile=os.path.join(CODE_DIR, "workflow/workflow.smk"),
-            config=config,
-            targets=target_list,
-            batch=exec_batch,
-            cores=int(args.cores),
-            resources={"entrez_api": self.max_entrez_requests, "mem_mb": int(args.mem)},
-            force_incomplete=True,
-            scheduler="greedy",
-            # handle the rule-specific conda environments
-            use_conda=config["use_conda"],
-            conda_frontend="mamba",
-            conda_prefix=os.path.join(config["cache"], "conda") if config["use_conda"] else None,
-            # set all the debugging flags
-            printreason=args.debug,
-            printshellcmds=args.debug,
-            show_failed_logs=args.debug,
-            verbose=args.debug,
-            keep_incomplete=args.debug,
-            restart_times=0 if args.debug else RESTART_TIMES,
-            keepgoing=(not args.debug),
-            unlock=args.unlock,
-            # pass on any CLI arguments from the --snakemake flag
-            **smk_params,
-        )
+            dag_api = workflow_api.dag(
+                dag_settings=DAGSettings(
+                    targets=target_list,
+                    force_incomplete=True,
+                ),
+            )
+
+            dag_api.execute_workflow(
+                retries=0 if args.debug else RESTART_TIMES,
+                keepgoing=(not args.debug),
+            )
 
         # tidy up all the snakemake metadata
-        if success and (len(os.listdir(os.path.join(SNAKE_DIR, "locks"))) == 0):
+        if len(os.listdir(os.path.join(SNAKE_DIR, "locks"))) == 0:
             shutil.rmtree(SNAKE_DIR)
 
         # translate "success" into shell exit code of 0
@@ -615,4 +422,4 @@ The haystac commands are:
 
 
 if __name__ == "__main__":
-    Haystac()
+    Pathomancer()

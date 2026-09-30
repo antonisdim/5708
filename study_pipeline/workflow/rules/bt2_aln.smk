@@ -50,21 +50,49 @@ rule bowtie_index_accession:
         "bowtie2-build --large-index --threads {threads} {input} {params.basename} &> {log}"
 
 
+rule bowtie_align_accession_single_end:
+    input:
+        fastq=get_r1,
+        db_idx="refs/{pathogen}/{accession}.1.bt2l",
+    log:
+        "bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.log",
+    output:
+        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam",
+        bai_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam.bai",
+    params:
+        basename="refs/{pathogen}/{accession}",
+    threads: 4
+    wildcard_constraints:
+        read_mode="(SE|COLLAPSED)",
+    message:
+        "Aligning the filtered reads from sample {wildcards.sample} against taxon {wildcards.accession}."
+    conda:
+        "../envs/bowtie2.yaml"
+    shell:
+        "( bowtie2 --time --no-unal --no-discordant --no-mixed -q --threads {threads} "
+        "-I {MIN_FRAG_LEN} -X {MAX_FRAG_LEN} -x {params.basename} "
+        "-U {input.fastq} "
+        "| samtools sort -O bam -o {output.bam_file} && samtools index {output.bam_file} "
+        ") 2> {log}"
+
+
 rule bowtie_align_accession_paired_end:
     input:
         fastq_r1=get_r1,
         fastq_r2=get_r2,
         db_idx="refs/{pathogen}/{accession}.1.bt2l",
     log:
-        "bt2_alignments_{pathogen}/{sample}_ref_{accession}.log",
+        "bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.log",
     output:
-        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam",
-        bai_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam.bai",
+        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam",
+        bai_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam.bai",
     params:
         basename="refs/{pathogen}/{accession}",
     threads: 4
+    wildcard_constraints:
+        read_mode="PE",
     message:
-        "Aligning the reads from sample {wildcards.sample} against taxon {wildcards.pathogen}."
+        "Aligning the reads from sample {wildcards.sample} against taxon {wildcards.accession}."
     conda:
         "../envs/bowtie2.yaml"
     shell:

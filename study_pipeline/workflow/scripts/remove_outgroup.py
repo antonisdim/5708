@@ -12,7 +12,6 @@ from utilities import get_out_genome
 
 
 def get_chromosome_aln(chr_alignment, wild, out_fasta):
-
     """Remove the outgroup sequence from the chromosome alignment"""
 
     bacterial_chromosomes = []
