@@ -200,6 +200,8 @@ def get_read_file(wildcards, mate):
 
     if wildcards.read_mode == "PE":
         sam_path = f"adRm/{wildcards.sample}_R{mate}_adRm.fastq.gz"
+    elif wildcards.read_mode == "COLLAPSED":
+        sam_path = f"adRm/{wildcards.sample}_collapsed_adRm.fastq.gz"
     else:
         sam_path = f"adRm/{wildcards.sample}_adRm.fastq.gz"
 
@@ -361,3 +363,19 @@ def get_correct_metadata(wildcards):
         pop_meta = f"aux_files/{wildcards.pathogen}_lineage_all_meta.tsv"
 
     return pop_meta
+
+
+class BoolType(object):
+    """
+    Is this a valid boolean
+    """
+
+    def __call__(self, value):
+        if isinstance(value, bool):
+            return value
+        if value.lower() in ("yes", "true", "t", "y", "1"):
+            return True
+        elif value.lower() in ("no", "false", "f", "n", "0"):
+            return False
+        else:
+            raise argparse.ArgumentTypeError(f"'{value}' is not a valid boolean")

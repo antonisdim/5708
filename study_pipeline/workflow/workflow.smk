@@ -32,9 +32,9 @@ if os.path.isfile(REF_GENOME_TABLE) or config["reference_genome"] is not None:
     include: "rules/serotyping.smk"
 
 
-if os.path.isfile(OUT_GENOME_TABLE):
+if os.path.isfile(OUT_GENOME_TABLE) or config["outgroup_genome"] is not None:
 
     include: "rules/outgroup.smk"
     include: "rules/tree_stats.smk"
     include: "rules/trait_comparisons.smk"
-#   include: "rules/muttui.smk"
+    include: "rules/muttui.smk"

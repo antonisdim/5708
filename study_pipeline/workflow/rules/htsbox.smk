@@ -9,13 +9,13 @@ __license__ = "MIT"
 
 rule consensus_fasta:
     input:
-        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}.bam",
+        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam",
         ref="refs/{pathogen}/{accession}.fasta",
         faidx="refs/{pathogen}/{accession}.fasta.fai",
     log:
-        "seqs_{pathogen}/{sample}_ref_{accession}.log",
+        "seqs_{pathogen}/{sample}_ref_{accession}_{read_mode}.log",
     output:
-        "seqs_{pathogen}/{sample}_ref_{accession}.fasta",
+        "seqs_{pathogen}/{sample}_ref_{accession}_{read_mode}.fasta",
     message:
         "Creating the consensus fasta sequence for sample {wildcards.sample} for "
         "{wildcards.pathogen}."
@@ -24,7 +24,7 @@ rule consensus_fasta:
     shell:
         'sample=$"{wildcards.sample}";'
         'if [[ "$sample" == *"SB27"* ]] || [[ "$sample" == *"SRR"* ]] || [[ "$sample" == *"ERR"* ]] || [[ "$sample" == *"DRR"* ]]; then'
-        "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> {output}) 2> {log};"
+        "   (htsbox pileup -f {input.ref} -l 25 -T 3 -q 30 -Q 30 -M -s 3 {input.bam_file} 1> {output}) 2> {log};"
         "else "
-        "   (htsbox pileup -f {input.ref} -l 15 -T 3 -q 20 -Q 20 -M {input.bam_file} 1> {output}) 2> {log};"
+        "   (htsbox pileup -f {input.ref} -l 25 -T 3 -q 20 -Q 30 -M {input.bam_file} 1> {output}) 2> {log};"
         "fi"

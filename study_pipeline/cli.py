@@ -13,23 +13,28 @@ import os
 import shutil
 import sys
 from multiprocessing import cpu_count
-from workflow.scripts.utilities import read_sample_list
+from workflow.scripts.utilities import read_sample_list, BoolType
 
 import snakemake
 import yaml
 import pandas as pd
 from psutil import virtual_memory
+
+# noinspection PyUnresolvedReferences
 from snakemake.api import SnakemakeApi
+
+# noinspection PyUnresolvedReferences
 from snakemake.settings.types import (
     ConfigSettings,
     DAGSettings,
     DeploymentMethod,
     DeploymentSettings,
+    ExecutionSettings,
     OutputSettings,
     ResourceSettings,
     StorageSettings,
     WorkflowSettings,
-    Batch
+    Batch,
 )
 
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -37,6 +42,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 MAX_CPU = cpu_count()
 MAX_MEM_MB = int(virtual_memory().total / 1024**2)
+CONFIG_DEFAULT = "config/config.yaml"
 
 CODE_DIR = os.path.abspath(os.path.dirname(__file__))
 SNAKE_DIR = ".snakemake"
@@ -70,8 +76,8 @@ The pathomancer commands are:
         # get the CLI arguments
         args = self._parse_args(parser, level=1)
 
-        # # load the config files
-        # self._load_config()
+        # load the config files
+        self._load_config()
 
         try:
             # call the class method with the name given by `command`
@@ -116,16 +122,19 @@ The pathomancer commands are:
                 os.path.expanduser(self.config_default["cache"])
             )
 
-        try:
-            # load the user config
-            with open(CONFIG_USER) as fin:
-                self.config_user = yaml.safe_load(fin)
+        # todo not sure I want users to configure that - not sure who the users are in this instance
+        # try:
+        #     # load the user config
+        #     with open(CONFIG_USER) as fin:
+        #         self.config_user = yaml.safe_load(fin)
+        #
+        # except FileNotFoundError:
+        #     # make the config folder (if necessary)
+        #     os.makedirs(os.path.dirname(CONFIG_USER), exist_ok=True)
+        #
+        #     self.config_user = dict()
 
-        except FileNotFoundError:
-            # make the config folder (if necessary)
-            os.makedirs(os.path.dirname(CONFIG_USER), exist_ok=True)
-
-            self.config_user = dict()
+        self.config_user = dict()
 
         # merge the config dictionaries (giving precedence to the config_user)
         self.config_merged = {**self.config_default, **self.config_user}
@@ -170,8 +179,7 @@ The pathomancer commands are:
         args = self._parse_args(parser, level=2)
 
         # add all command line options to the merged config
-        # config = {**self.config_merged, **vars(args)}
-        config = {**vars(args)}
+        config = {**self.config_merged, **vars(args)}
 
         target_list = list()
 
@@ -255,6 +263,16 @@ The pathomancer commands are:
             metavar="<path>",
         )
 
+        optional = parser.add_argument_group("Optional arguments")
+
+        optional.add_argument(
+            "--generate-fasta",
+            help=f"Generate consensus fasta pseudo-genomes (pileup with majority allele)",
+            type=BoolType(),
+            metavar="<bool>",
+            default=argparse.SUPPRESS,
+        )
+
         # add the common arguments
         self._common_arguments(parser)
 
@@ -262,8 +280,7 @@ The pathomancer commands are:
         args = self._parse_args(parser, level=2)
 
         # add all command line options to the merged config
-        # config = {**self.config_merged, **vars(args)}
-        config = {**vars(args)}
+        config = {**self.config_merged, **vars(args)}
 
         target_list = list()
         if (config["sample_file"] is not None) and (
@@ -274,15 +291,32 @@ The pathomancer commands are:
             target_list = [
                 f"bt2_alignments_{p}/{s}_ref_{config['reference_genome']}_{m}.bam"
                 for s, p, m in zip(
-                    target_samples["Sample_Acc"], target_samples["Species"], target_samples["Read_mode"]
+                    target_samples["Sample_Acc"],
+                    target_samples["Species"],
+                    target_samples["Read_mode"],
                 )
             ]
+            # if we want to generate consensus fasta sequences we extend the target list
+            if config["generate_fasta"]:
+                fasta_list = [
+                    f"seqs_{p}/{s}_ref_{config['reference_genome']}_{m}.fasta"
+                    for s, p, m in zip(
+                        target_samples["Sample_Acc"],
+                        target_samples["Species"],
+                        target_samples["Read_mode"],
+                    )
+                ]
+                target_list.extend(fasta_list)
 
         elif (config["sample_name"] is not None) and (config["read_mode"] is not None):
             target_list.append(
                 f"bt2_alignments_{config['species']}/{config['sample_name']}_ref_{config['reference_genome']}_{config['read_mode']}.bam"
             )
-
+            # we add a new target if we also want the fasta files
+            if config["generate_fasta"]:
+                target_list.append(
+                    f"seqs_{config['species']}/{config['sample_name']}_ref_{config['reference_genome']}_{config['read_mode']}.fasta"
+                )
         else:
             raise ValueError("Invalid flag combo")
 
@@ -382,11 +416,11 @@ The pathomancer commands are:
         # if config.get("batch"):
         #     config.pop("batch")
         with SnakemakeApi(
-                OutputSettings(
-                    verbose=args.debug,
-                    show_failed_logs=args.debug,
-                    printshellcmds=args.debug,
-                ),
+            OutputSettings(
+                verbose=args.debug,
+                show_failed_logs=args.debug,
+                printshellcmds=args.debug,
+            ),
         ) as snakemake_api:
             workflow_api = snakemake_api.workflow(
                 storage_settings=StorageSettings(),
@@ -409,16 +443,18 @@ The pathomancer commands are:
             )
 
             dag_api.execute_workflow(
-                retries=0 if args.debug else RESTART_TIMES,
-                keepgoing=(not args.debug),
+                execution_settings=ExecutionSettings(
+                    retries=0 if args.debug else RESTART_TIMES,
+                    keep_going=(not args.debug),
+                ),
             )
 
         # tidy up all the snakemake metadata
-        if len(os.listdir(os.path.join(SNAKE_DIR, "locks"))) == 0:
-            shutil.rmtree(SNAKE_DIR)
+        # if len(os.listdir(os.path.join(SNAKE_DIR, "locks"))) == 0:
+        #     shutil.rmtree(SNAKE_DIR)
 
         # translate "success" into shell exit code of 0
-        return 0 if success else 1
+        # return 0 if success else 1
 
 
 if __name__ == "__main__":

@@ -63,7 +63,7 @@ rule bowtie_align_accession_single_end:
         basename="refs/{pathogen}/{accession}",
     threads: 4
     wildcard_constraints:
-        read_mode="(SE|COLLAPSED)",
+        read_mode="SE",
     message:
         "Aligning the filtered reads from sample {wildcards.sample} against taxon {wildcards.accession}."
     conda:
@@ -99,5 +99,31 @@ rule bowtie_align_accession_paired_end:
         "( bowtie2 --time --no-unal --no-mixed --threads {threads} "
         "-I {MIN_FRAG_LEN} -X {MAX_FRAG_LEN} -x {params.basename} "
         "-1 {input.fastq_r1} -2 {input.fastq_r2} "
+        "| samtools sort -O bam -o {output.bam_file} && samtools index {output.bam_file} "
+        ") 2> {log}"
+
+
+rule bowtie_align_accession_collapsed:
+    input:
+        fastq=get_r1,
+        db_idx="refs/{pathogen}/{accession}.1.bt2l",
+    log:
+        "bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.log",
+    output:
+        bam_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam",
+        bai_file="bt2_alignments_{pathogen}/{sample}_ref_{accession}_{read_mode}.bam.bai",
+    params:
+        basename="refs/{pathogen}/{accession}",
+    threads: 4
+    wildcard_constraints:
+        read_mode="COLLAPSED",
+    message:
+        "Aligning the filtered reads from sample {wildcards.sample} against taxon {wildcards.accession}."
+    conda:
+        "../envs/bowtie2.yaml"
+    shell:
+        "( bowtie2 --time --no-unal --no-discordant --no-mixed -q --threads {threads} "
+        "-I {MIN_FRAG_LEN} -X {MAX_FRAG_LEN} -x {params.basename} "
+        "--sensitive -U {input.fastq} "
         "| samtools sort -O bam -o {output.bam_file} && samtools index {output.bam_file} "
         ") 2> {log}"
